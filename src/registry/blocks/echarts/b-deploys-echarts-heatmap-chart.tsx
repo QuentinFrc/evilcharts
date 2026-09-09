@@ -42,6 +42,14 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 const TOTAL = chartData.reduce((sum, day) => sum + day.value, 0);
+const WEEKDAYS = (() => {
+  let count = 0;
+  for (let ms = Date.UTC(2025, 6, 1); ms <= Date.UTC(2025, 11, 31); ms += 86_400_000) {
+    const day = new Date(ms).getUTCDay();
+    if (day !== 0 && day !== 6) count += 1;
+  }
+  return count;
+})();
 const BUSIEST = chartData.reduce(
   (best, day) => (day.value > best.value ? day : best),
   chartData[0],
@@ -74,7 +82,7 @@ export function EChartsDeploysHeatmapChart() {
         <div className="flex flex-col gap-0.5">
           <span className="text-muted-foreground text-[11px]">Per weekday</span>
           <span className="text-primary text-xl leading-none font-semibold tracking-tight">
-            {(TOTAL / 131).toFixed(1)}
+            {(TOTAL / WEEKDAYS).toFixed(1)}
           </span>
         </div>
       </div>

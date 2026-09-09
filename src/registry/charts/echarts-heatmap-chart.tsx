@@ -833,6 +833,7 @@ function buildLoadingOption(ctx: OptionBuildContext): EChartsOption {
 
 type LiveState = {
   resolved: ResolvedColors | null; // colors read off the live DOM — feeds builds and the shimmer
+  selectedDate: string | null; // current selection, kept in step with the React state
   hasRevealed: boolean; // the intro sweep already played on this chart instance
   revealEnabled: boolean; // the current push should create cells with the entrance
   // Latest callbacks/flags for the imperative ECharts click handler.
@@ -889,6 +890,7 @@ export function EChartsHeatmapChart({
   // for the component's lifetime.
   const live = useRef<LiveState>({
     resolved: null,
+    selectedDate: defaultSelectedDate,
     hasRevealed: false,
     revealEnabled: false,
     handlers: {
@@ -925,19 +927,20 @@ export function EChartsHeatmapChart({
     cells: grid.cells,
   };
 
+  // The next selection is derived from the ref, not inside the state updater:
+  // React may run an updater more than once, and the callback must fire once.
   const toggleSelection = useCallback(
     (date: string) => {
-      setSelectedDate((prev) => {
-        const next = prev === date ? null : date;
-        const { onSelectionChange: cb, cells } = live.handlers;
-        if (next === null) {
-          cb?.(null);
-        } else {
-          const item = cells.find((candidate) => candidate.date === next);
-          cb?.({ date: next, value: item?.value ?? 0 });
-        }
-        return next;
-      });
+      const next = live.selectedDate === date ? null : date;
+      live.selectedDate = next;
+      setSelectedDate(next);
+      const { onSelectionChange: cb, cells } = live.handlers;
+      if (next === null) {
+        cb?.(null);
+      } else {
+        const item = cells.find((candidate) => candidate.date === next);
+        cb?.({ date: next, value: item?.value ?? 0 });
+      }
     },
     [live],
   );
