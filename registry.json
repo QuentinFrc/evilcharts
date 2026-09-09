@@ -342,6 +342,26 @@
       ]
     },
     {
+      "name": "echarts-heatmap-chart",
+      "description": "Calendar heatmap component rendered with Apache ECharts — GitHub contribution graph style",
+      "registryDependencies": [
+        "@evilcharts/echarts-chart",
+        "@evilcharts/echarts-tooltip"
+      ],
+      "dependencies": [
+        "echarts",
+        "motion"
+      ],
+      "type": "registry:component",
+      "files": [
+        {
+          "path": "src/registry/charts/echarts-heatmap-chart.tsx",
+          "type": "registry:component",
+          "target": "components/evilcharts/charts/echarts-heatmap-chart.tsx"
+        }
+      ]
+    },
+    {
       "name": "recharts-area-chart",
       "description": "Area chart component",
       "registryDependencies": [
@@ -3510,6 +3530,110 @@
       "files": [
         {
           "path": "src/registry/examples/recharts/ex-chart-config-icons-bar-chart.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
+      "name": "ex-echarts-heatmap-chart",
+      "registryDependencies": [
+        "@evilcharts/echarts-heatmap-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/examples/echarts/ex-echarts-heatmap-chart.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
+      "name": "ex-svg-renderer-echarts-heatmap-chart",
+      "registryDependencies": [
+        "@evilcharts/echarts-heatmap-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/examples/echarts/ex-svg-renderer-echarts-heatmap-chart.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
+      "name": "ex-loading-state-echarts-heatmap-chart",
+      "registryDependencies": [
+        "@evilcharts/echarts-heatmap-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/examples/echarts/ex-loading-state-echarts-heatmap-chart.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
+      "name": "ex-monday-start-echarts-heatmap-chart",
+      "registryDependencies": [
+        "@evilcharts/echarts-heatmap-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/examples/echarts/ex-monday-start-echarts-heatmap-chart.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
+      "name": "ex-clickable-echarts-heatmap-chart",
+      "registryDependencies": [
+        "@evilcharts/echarts-heatmap-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/examples/echarts/ex-clickable-echarts-heatmap-chart.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
+      "name": "ex-year-range-echarts-heatmap-chart",
+      "registryDependencies": [
+        "@evilcharts/echarts-heatmap-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/examples/echarts/ex-year-range-echarts-heatmap-chart.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
+      "name": "ex-rounded-cells-echarts-heatmap-chart",
+      "registryDependencies": [
+        "@evilcharts/echarts-heatmap-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/examples/echarts/ex-rounded-cells-echarts-heatmap-chart.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
+      "name": "ex-thresholds-echarts-heatmap-chart",
+      "registryDependencies": [
+        "@evilcharts/echarts-heatmap-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/examples/echarts/ex-thresholds-echarts-heatmap-chart.tsx",
           "type": "registry:block"
         }
       ]

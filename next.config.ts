@@ -20,6 +20,12 @@ const RECHARTS_CHARTS = [
   "sankey-chart",
 ].join("|");
 
+// Charts that exist for ECharts only (no Recharts twin). They get the same
+// folder → default-variant redirect under their provider, but must stay out
+// of the legacy pre-provider-split rules below, which land on /docs/recharts.
+const ECHARTS_ONLY_CHARTS = ["heatmap-chart"].join("|");
+const ALL_CHARTS = [RECHARTS_CHARTS, ECHARTS_ONLY_CHARTS].join("|");
+
 // Plural spellings from a much older version of the site, still cached by Google.
 // They can't be regex-folded into the singular rules, so they stay enumerated.
 const LEGACY_PLURAL_CHARTS = [
@@ -48,7 +54,7 @@ const nextConfig: NextConfig = {
       // ── Chart folders have no index page; land on the default variant ─────
       // /docs/recharts/area-chart → /docs/recharts/area-chart/static
       {
-        source: `/docs/:provider(${PROVIDERS})/:chart(${RECHARTS_CHARTS})`,
+        source: `/docs/:provider(${PROVIDERS})/:chart(${ALL_CHARTS})`,
         destination: "/docs/:provider/:chart/static",
         permanent: true,
       },
