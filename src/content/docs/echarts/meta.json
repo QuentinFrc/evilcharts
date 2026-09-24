@@ -12,6 +12,7 @@
     "radial-chart",
     "sankey-chart",
     "heatmap-chart",
+    "zone-chart",
     "ui/tooltip",
     "ui/legend",
     "ui/dots",

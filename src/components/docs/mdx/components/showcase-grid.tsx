@@ -1,16 +1,21 @@
 "use client";
 
+import {
+  DEFAULT_PROVIDER,
+  providerFromPathname,
+  type Provider,
+} from "@/globals/constants/providers";
 import { ComposedPreview } from "@/components/docs/svg-previews/composed-preview";
 import { HeatmapPreview } from "@/components/docs/svg-previews/heatmap-preview";
 import { SankeyPreview } from "@/components/docs/svg-previews/sankey-preview";
 import { RadialPreview } from "@/components/docs/svg-previews/radial-preview";
 import { RadarPreview } from "@/components/docs/svg-previews/radar-preview";
+import { ZonePreview } from "@/components/docs/svg-previews/zone-preview";
 import { LinePreview } from "@/components/docs/svg-previews/line-preview";
 import { AreaPreview } from "@/components/docs/svg-previews/area-preview";
 import { PiePreview } from "@/components/docs/svg-previews/pie-preview";
 import { BarPreview } from "@/components/docs/svg-previews/bar-preview";
 import { Grid } from "@/components/docs/svg-previews/background-grid";
-import { DEFAULT_PROVIDER, providerFromPathname } from "@/globals/constants/providers";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 
@@ -20,6 +25,8 @@ interface Chart {
   Component: React.ComponentType;
   /** Chart folder name; the provider segment is prepended at render time. */
   slug: string;
+  /** Providers that ship this chart. Omit when every provider has it. */
+  providers?: Provider[];
 }
 
 const CHARTS: Chart[] = [
@@ -77,6 +84,13 @@ const CHARTS: Chart[] = [
     Component: HeatmapPreview,
     slug: "heatmap-chart",
   },
+  {
+    name: "Zone Chart",
+    description: "Read each row against the zone it was expected to land in.",
+    Component: ZonePreview,
+    slug: "zone-chart",
+    providers: ["echarts"],
+  },
 ];
 
 interface ShowcaseItemProps {
@@ -110,10 +124,11 @@ const ShowcaseGrid = () => {
   // provider. Deriving it from the URL means a new provider needs no changes here
   // and no prop threading through MDX.
   const provider = providerFromPathname(pathname) ?? DEFAULT_PROVIDER;
+  const charts = CHARTS.filter(({ providers }) => !providers || providers.includes(provider));
 
   return (
     <div className="mt-6 grid grid-flow-row grid-cols-1 gap-8 sm:grid-cols-2">
-      {CHARTS.map(({ name, description, slug, Component }) => (
+      {charts.map(({ name, description, slug, Component }) => (
         <ShowcaseItem
           key={name}
           name={name}

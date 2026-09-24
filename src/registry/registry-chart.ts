@@ -170,6 +170,29 @@ export const charts: Registry["items"] = [
     ],
   },
   {
+    // A cartesian custom series, not one of ECharts' built-in chart types: the
+    // zone bands, the expected zone, the hatched tolerance and the marker are
+    // all painted per row. Shares the color core and the tooltip surface with
+    // the rest of the ECharts provider.
+    name: "echarts-zone-chart",
+    description:
+      "Zone chart component rendered with Apache ECharts — one track per row, split into zones, with a marker at the row's value",
+    registryDependencies: [
+      "@evilcharts/echarts-chart",
+      "@evilcharts/echarts-tooltip",
+      "@evilcharts/echarts-legend",
+    ],
+    dependencies: ["echarts", "motion"],
+    type: "registry:component",
+    files: [
+      {
+        path: "charts/echarts-zone-chart.tsx",
+        type: "registry:component",
+        target: TARGET_BASE_PATH + "/echarts-zone-chart.tsx",
+      },
+    ],
+  },
+  {
     name: "recharts-area-chart",
     description: "Area chart component",
     registryDependencies: [

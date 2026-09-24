@@ -1,0 +1,428 @@
+---
+title: Zone Chart
+description: One horizontal track per row, split into zones, with a marker at the row's value — powered by Apache ECharts
+links:
+  github: https://github.com/legions-developer/evilcharts/blob/main/src/registry/charts/echarts-zone-chart.tsx
+  doc: https://echarts.apache.org/en/index.html
+  api: https://echarts.apache.org/en/option.html#series-custom
+---
+
+<ComponentPreview title="Basic Chart" name="ex-echarts-zone-chart"  />
+
+## Installation
+
+<CodeTabs>
+  <TabsList variant="underline">
+    <TabsTab value="cli">CLI</TabsTab>
+    <TabsTab value="manual">Manual</TabsTab>
+  </TabsList>
+  <TabsPanel value="cli">
+    <CliBlock commands={["@evilcharts/echarts-zone-chart"]} />
+  </TabsPanel>
+  <TabsPanel value="manual">
+    <Steps>
+      <Step>
+        <StepTitle>Install the following dependencies:</StepTitle>
+        <StepContent>
+          <CommandBlock commands={["echarts", "motion"]} />
+        </StepContent>
+      </Step>
+      <Step>
+        <StepTitle>Copy and paste the following code snippets into your project.</StepTitle>
+        <StepDescription>
+          First create the folder `evilcharts` and a subfolder `charts` in your `components` directory, then paste the zone-chart code into a new `echarts-zone-chart.tsx` file there.
+        </StepDescription>
+        <StepContent>
+          <ComponentSource
+            name="echarts-zone-chart"
+            title="components/evilcharts/charts/echarts-zone-chart.tsx"
+          />
+        </StepContent>
+      </Step>
+      <Step>
+        <StepTitle>Add the shared chart module.</StepTitle>
+        <StepDescription>
+          Create a `ui` folder inside `evilcharts` and paste this one in first — it resolves your config's colors from the page's CSS variables, and every sub-component below imports from it.
+        </StepDescription>
+        <StepContent>
+          <ComponentSource
+            name="echarts-chart"
+            title="components/evilcharts/ui/echarts-chart.tsx"
+          />
+        </StepContent>
+      </Step>
+      <Step>
+        <StepTitle>Add the sub-component.</StepTitle>
+        <StepDescription>
+          Create `echarts-tooltip.tsx` in the same `ui` folder and paste the tooltip surface and its variants there.
+        </StepDescription>
+        <StepContent>
+          <ComponentSource
+            name="echarts-tooltip"
+            title="components/evilcharts/ui/echarts-tooltip.tsx"
+          />
+        </StepContent>
+      </Step>
+    </Steps>
+  </TabsPanel>
+</CodeTabs>
+
+## Usage
+
+The zone chart reads a list against a shared scale. Each row gets a horizontal track split into equal zones — one per key in `zones` — and a marker at the row's value. Give a row the `zone` it was *expected* to land in and that zone is painted solid; give it a `tolerance` and the drift it is still allowed shows as hatched margins around it. A row whose value misses both is yours to mark `tone: "alert"`, and it opens with a warning glyph.
+
+`<EChartsZoneChart>` is the container, and every part hangs off it as a compound member — `<EChartsZoneChart.Track>`, `<EChartsZoneChart.Marker>`, `<EChartsZoneChart.Tolerance>`, `<EChartsZoneChart.ZoneLabel>`, `<EChartsZoneChart.RowLabel>`, `<EChartsZoneChart.ValueLabel>`, `<EChartsZoneChart.Alert>`, `<EChartsZoneChart.Legend>`, and `<EChartsZoneChart.Tooltip>` — so a single import gives you the whole chart. The track and the marker are intrinsic to the reading, so they always render and only configure the row; the rest follow presence semantics — omit one and it does not render.
+
+```tsx
+import { EChartsZoneChart, type ChartConfig, type ZoneChartRow } from "@/components/evilcharts/charts/echarts-zone-chart";
+```
+
+```tsx
+// The zones divide [0, max] into equal bands, in the order you list them.
+const zones = ["easy", "medium", "hard", "expert"];
+
+const chartConfig = {
+  easy: { label: "Easy", colors: { light: ["#10b981"], dark: ["#34d399"] } },
+  medium: { label: "Medium", colors: { light: ["#0ea5e9"], dark: ["#38bdf8"] } },
+  hard: { label: "Hard", colors: { light: ["#f97316"], dark: ["#fb923c"] } },
+  expert: { label: "Expert", colors: { light: ["#e11d48"], dark: ["#fb7185"] } },
+  offZone: { label: "Off zone", colors: { light: ["#d97706"], dark: ["#fbbf24"] } },
+} satisfies ChartConfig;
+
+const data: ZoneChartRow[] = [
+  { key: "ex-01", label: "Opening moves", value: 18, zone: "easy", tolerance: { start: 0, end: 37.5 } },
+  { key: "ex-04", label: "Defence signals", value: 71, zone: "medium", tolerance: { start: 12.5, end: 62.5 }, tone: "alert" },
+  // ...
+];
+
+<EChartsZoneChart data={data} config={chartConfig} zones={zones}>
+  <EChartsZoneChart.Track />
+  <EChartsZoneChart.Marker />
+  <EChartsZoneChart.Tolerance />
+  <EChartsZoneChart.ZoneLabel />
+  <EChartsZoneChart.RowLabel />
+  <EChartsZoneChart.ValueLabel />
+  <EChartsZoneChart.Alert dataKey="offZone" />
+  <EChartsZoneChart.Tooltip />
+</EChartsZoneChart>
+```
+
+Under the hood these compound children are declarative configuration slots rather than visual React DOM nodes. The root reads their props and compiles an ECharts option — a cartesian grid for the scale and the rows, and a custom series that paints each track: the zone bands, the tolerance, the expected zone, and the marker. ECharts renders it with Canvas by default, or SVG when `renderer="svg"`.
+
+`config` is the same contract as every EvilCharts chart — a key maps to a `label` and a per-theme `colors` array. See <Link href="/docs/chart-config">Chart Config</Link> for the full shape. Here each zone key supplies both the name shown above the track and the color that paints it, so dark mode just works.
+
+<Alert>
+  <AlertContent>
+    The chart has no opinion about when a row is wrong. `zone`, `tolerance`, and `tone` are all
+    data — compute them however your domain defines "off", and the chart draws the result.
+  </AlertContent>
+</Alert>
+
+### Skins
+
+`<Track>` carries two independent switches, and every combination of them is a valid reading:
+
+- `layout` — **where** the zones live. `"rows"` gives each row its own copy of them; `"spectrum"` paints them once as a full-height backdrop shared by every row.
+- `variant` — **how** they are painted. `"default"` draws discrete bands; `"gradient"` draws one ramp, each zone holding its color at the center of its band so the scale reads as progressive.
+
+#### Gradient fill
+
+`variant="gradient"` turns each row's track into a ramp. Two things follow from it rather than being separate props: there are no band edges left to hatch against, so the tolerance becomes a translucent outlined band; and a saturated ramp sits directly under the marker, so the marker takes the color of the zone its value lands in instead of the neutral foreground.
+
+<ComponentPreview className="mb-0" title='<Track variant="gradient" />' name="ex-gradient-echarts-zone-chart"  />
+<Alert>
+  <AlertContent>
+    Use `"default"` when the bands themselves are the message — four named levels, and you want to
+    see which one a row fell into. Use `"gradient"` when the scale is continuous and the zones are
+    just landmarks on it. The example above swaps `<ZoneLabel>` for `<Legend>`: a ramp has no band
+    edges to match a name to, so the swatch key reads better than names floating over it.
+  </AlertContent>
+</Alert>
+
+#### Spectrum layout
+
+`layout="spectrum"` paints the zones **once**, behind every row, so the chart reads as one uninterrupted scale. A row is then just a dotted rule across that spectrum: its tolerance is a dashed segment in the expected zone's color, its expected zone a solid pill, and its value the marker on it. Use it when the rows share one scale and repeating the same bands on each of them is only noise.
+
+<ComponentPreview className="mb-0" title='<Track layout="spectrum" gap={0} />' name="ex-spectrum-echarts-zone-chart"  />
+<Alert>
+  <AlertContent>
+    `gap={0}` above makes the columns one continuous block — only the outer corners round, so
+    there is no seam between them. Raise `gap` to separate the columns instead.
+  </AlertContent>
+</Alert>
+
+#### Both at once
+
+The two switches compose: a spectrum backdrop painted as a ramp. The zones stay where they are — each still holds its color at the center of its band, so the names above still sit over the color they name — but they bleed into one another instead of meeting at an edge.
+
+<ComponentPreview className="mb-0" title='<Track layout="spectrum" variant="gradient" />' name="ex-spectrum-gradient-echarts-zone-chart"  />
+
+### Without an Expected Zone
+
+Leave `zone` off a row and its track stays plain — the chart is then simply placing each row on a shared scale.
+
+<ComponentPreview className="mb-0" title='shape="line"' name="ex-bare-echarts-zone-chart"  />
+
+### SVG Renderer
+
+Pass `renderer="svg"` to the chart root to opt into ECharts' SVG renderer. Omit it to use the default Canvas renderer.
+
+<ComponentPreview title='renderer="svg"' name="ex-svg-renderer-echarts-zone-chart" />
+
+### Interactive Selection
+
+Set `isClickable` on `<Track>` to make rows selectable. The selected row keeps full strength while the rest soften. Handle selection events with the root's `onSelectionChange` callback:
+
+<ComponentPreview className="mb-0" title="isClickable" name="ex-clickable-echarts-zone-chart" />
+
+```tsx
+<EChartsZoneChart
+  data={data}
+  config={chartConfig}
+  zones={zones}
+  onSelectionChange={(selection) => {
+    if (selection) {
+      console.log("Selected:", selection.key, selection.value, "in", selection.zone);
+    } else {
+      console.log("Deselected");
+    }
+  }}
+>
+  <EChartsZoneChart.Track isClickable />
+  <EChartsZoneChart.Tooltip />
+</EChartsZoneChart>
+```
+
+### Loading State
+
+<ComponentPreview className="mb-0" title="isLoading='true'" name="ex-loading-state-echarts-zone-chart"  />
+<Alert>
+  <AlertContent>
+    Pass `isLoading` to `<EChartsZoneChart>` to show an animated gray skeleton — a pill for each
+    label column and a bar for each track. With no data yet, `loadingRows` decides how many rows
+    the skeleton draws. The intro reveal replays once the data lands.
+  </AlertContent>
+</Alert>
+
+## Examples
+
+### Thicker Tracks
+
+<ComponentPreview className="mb-0" title='height={22} shape="diamond"' name="ex-marker-echarts-zone-chart"  />
+<Alert>
+  <AlertContent>
+    `<Track>` sizes the band and `<Marker>` shapes the reading. A taller track with a larger
+    `radius` and `gap` reads as tiles; `shape="diamond"` and `shape="line"` are alternatives to
+    the default dot.
+  </AlertContent>
+</Alert>
+
+## API Reference
+
+A root container plus a small set of composible parts. Render the root, then compose the parts you need as children. Each part is declarative config the root compiles into the ECharts option.
+
+<ApiHeading>EChartsZoneChart</ApiHeading>
+
+The root container. It owns the scale, the zone math, shared selection state, the loading skeleton, and the intro reveal. Everything visual is composed as children and compiled into the ECharts option.
+
+<ApiTable>
+  <ApiRow name="data" type="ZoneChartRow[]" required>
+    One entry per track, rendered top to bottom in order. `ZoneChartRow` is `{ key, label, value, valueLabel?, zone?, tolerance?, tone? }` — see the table below.
+  </ApiRow>
+  <ApiRow name="config" type="ChartConfig" required>
+    Defines the zones. Each key listed in `zones` supplies a `label` and a per-theme `colors` array; the key named by `<Alert dataKey>` supplies the alert color. Same contract as every EvilCharts chart — see <Link href="/docs/chart-config">Chart Config</Link>.
+  </ApiRow>
+  <ApiRow name="zones" type="string[]" required>
+    The `config` keys that divide the scale, in order. They take equal widths across `[0, max]`, so four zones on the default scale are the quarters `0–25`, `25–50`, `50–75`, and `75–100`.
+  </ApiRow>
+  <ApiRow name="children" type="ReactNode" required>
+    The composed parts — `<Track />`, `<Marker />`, `<Tolerance />`, `<ZoneLabel />`, `<RowLabel />`, `<ValueLabel />`, `<Alert />`, `<Legend />`, and `<Tooltip />`.
+  </ApiRow>
+  <ApiRow name="className" type="string">
+    Additional CSS classes for the chart container.
+  </ApiRow>
+  <ApiRow name="renderer" type='"canvas" | "svg"' default='"canvas"'>
+    Rendering engine used by ECharts. Use `"svg"` for an SVG-backed chart surface; omit the prop to keep the Canvas default.
+  </ApiRow>
+  <ApiRow name="max" type="number" default="100">
+    The top of the scale. The bottom is always `0`, and every `value`, `zone` boundary, and `tolerance` is read against it.
+  </ApiRow>
+  <ApiRow name="defaultSelectedKey" type="string | null" default="null">
+    The row `key` selected on first render.
+  </ApiRow>
+  <ApiRow name="onSelectionChange" type="(selection: { key: string; value: number; zone: string | null } | null) => void">
+    Called when a row is selected or deselected. Receives the row's `key`, its `value`, and the zone that value lands in, or `null` on deselect. Fires on click while `<Track />` has `isClickable` set.
+  </ApiRow>
+  <ApiRow name="isLoading" type="boolean" default="false">
+    Shows the animated loading skeleton.
+  </ApiRow>
+  <ApiRow name="loadingRows" type="number" default="5">
+    How many skeleton rows to draw while loading with an empty `data` array. Ignored once `data` has rows of its own.
+  </ApiRow>
+  <ApiRow name="animation" type="boolean" default="true">
+    Master switch for the intro reveal. Pass `false` to render the chart instantly.
+  </ApiRow>
+  <ApiRow name="animationType" type='"none" | "default"' default='"default"'>
+    `"default"` fades the rows in from top to bottom on first render, markers popping last; `"none"` disables it. The OS reduce-motion preference falls back to `"none"` automatically.
+  </ApiRow>
+  <ApiRow name="chartOptions" type="Record<string, unknown>">
+    Escape hatch merged over the built ECharts option object. See the <Link href="https://echarts.apache.org/en/option.html#series-custom" _blank>ECharts custom series documentation</Link>.
+  </ApiRow>
+</ApiTable>
+
+<ApiHeading>ZoneChartRow</ApiHeading>
+
+One row of the chart — the shape of every entry in `data`.
+
+<ApiTable>
+  <ApiRow name="key" type="string" required>
+    Stable identity for the row. Also what `onSelectionChange` reports back.
+  </ApiRow>
+  <ApiRow name="label" type="string" required>
+    Text shown in the row label column, when `<RowLabel />` is present.
+  </ApiRow>
+  <ApiRow name="value" type="number" required>
+    Where the marker sits on the scale, clamped to `[0, max]`.
+  </ApiRow>
+  <ApiRow name="valueLabel" type="string">
+    Text shown in the value column. Defaults to the raw `value`, formatted by the tooltip's `valueFormatter`.
+  </ApiRow>
+  <ApiRow name="zone" type="string | null">
+    The `config` key of the zone this row was expected to land in. That zone is painted solid. Omit it and the track stays plain.
+  </ApiRow>
+  <ApiRow name="tolerance" type="{ start: number; end: number } | null">
+    The span on the scale this row may drift into without being wrong. Rendered by `<Tolerance />`: hatched in the margins outside `zone` on the `"default"` variant, as a single outlined band on `"gradient"`, and as a dashed segment of the rule on the `"spectrum"` layout. A tolerance that fits inside its zone draws nothing — there is no drift to show.
+  </ApiRow>
+  <ApiRow name="tone" type='"default" | "alert"' default='"default"'>
+    `"alert"` paints the marker and value in the alert color and opens the row with a warning glyph. Requires `<Alert />`; without it the tone is ignored.
+  </ApiRow>
+</ApiTable>
+
+<ApiHeading>Track</ApiHeading>
+
+Configures the row track. Always renders — it is the surface everything else is drawn on.
+
+<ApiTable>
+  <ApiRow name="layout" type='"rows" | "spectrum"' default='"rows"'>
+    Where the zones live. `"rows"` gives every row its own track carrying its own copy of the zones; `"spectrum"` paints them once as a full-height backdrop and reduces each row to a dotted rule across it. Independent of `variant`.
+  </ApiRow>
+  <ApiRow name="variant" type='"default" | "gradient"' default='"default"'>
+    How the zones are painted. `"default"` draws discrete bands meeting at hard edges; `"gradient"` draws one ramp, each zone holding its color at the center of its band. On the `"rows"` layout, `"gradient"` also switches the tolerance to an outlined band and colors the marker by the zone it lands in — both consequences of losing the band edges, not separate settings.
+  </ApiRow>
+  <ApiRow name="height" type="number" default="16 / 20 / 7">
+    Thickness of the track in pixels. Defaults to `16` for `"rows"` + `"default"`, `20` for `"rows"` + `"gradient"` — which needs the extra room for its outlined tolerance band — and `7` for `"spectrum"`, where it sizes the expected-zone pill rather than a track.
+  </ApiRow>
+  <ApiRow name="radius" type="number" default="3">
+    Corner radius of the bands in pixels. Capped at half the track height.
+  </ApiRow>
+  <ApiRow name="gap" type="number" default="2">
+    Space between two neighboring zone bands in pixels — the `"default"` variant only, since `"gradient"` has no band edges. On the `"spectrum"` layout, `0` fuses the columns into one continuous block with only its outer corners rounded.
+  </ApiRow>
+  <ApiRow name="isClickable" type="boolean" default="false">
+    Lets rows be clicked to select/deselect them. The selected row keeps full strength while the rest soften.
+  </ApiRow>
+</ApiTable>
+
+<ApiHeading>Marker</ApiHeading>
+
+Configures the value marker. Always renders — the marker IS the reading.
+
+<ApiTable>
+  <ApiRow name="size" type="number" default="13">
+    Diameter of the marker in pixels.
+  </ApiRow>
+  <ApiRow name="shape" type='"circle" | "diamond" | "line"' default='"circle"'>
+    How the value is drawn on the track. `"line"` draws a full-height pin, which reads well on a continuous scale.
+  </ApiRow>
+</ApiTable>
+
+<ApiHeading>Tolerance</ApiHeading>
+
+Draws each row's tolerated drift — the span it is allowed to sit in before it is wrong. Its presence enables it; omit it and the `tolerance` on your rows is simply not painted. Takes no props: *how* it is drawn follows `<Track>` — hatched margins around the expected zone on the `"default"` variant, an outlined band on `"gradient"`, a dashed segment of the rule on the `"spectrum"` layout.
+
+<ApiHeading>ZoneLabel</ApiHeading>
+
+Shows the zone names above the tracks, each centered over its band. Its presence enables it; omit it and none show. Hidden while loading.
+
+<ApiTable>
+  <ApiRow name="formatter" type="(label: string, key: string, index: number) => string">
+    Rewrites a zone name before it is drawn. Receives the config `label`, the zone key, and its position in `zones`.
+  </ApiRow>
+</ApiTable>
+
+<ApiHeading>RowLabel</ApiHeading>
+
+Shows the row names to the left of the tracks. Its presence enables it; omit it and none show. Hidden while loading.
+
+<ApiTable>
+  <ApiRow name="width" type="number" default="132">
+    Width of the label column in pixels. Longer labels are truncated with an ellipsis.
+  </ApiRow>
+  <ApiRow name="formatter" type="(label: string, index: number) => string">
+    Rewrites a row name before it is drawn.
+  </ApiRow>
+</ApiTable>
+
+<ApiHeading>ValueLabel</ApiHeading>
+
+Shows each row's value to the right of its track, tinted with the alert color on rows whose `tone` is `"alert"`. Its presence enables it; omit it and none show. Hidden while loading.
+
+<ApiTable>
+  <ApiRow name="width" type="number" default="56">
+    Width of the value column in pixels.
+  </ApiRow>
+  <ApiRow name="formatter" type="(row: ZoneChartRow, index: number) => string">
+    Builds the text from the whole row. Takes precedence over the row's own `valueLabel`.
+  </ApiRow>
+</ApiTable>
+
+<ApiHeading>Alert</ApiHeading>
+
+Marks rows whose `tone` is `"alert"`: a warning glyph opens the row and the marker and value take the alert color. Its presence enables it; omit it and `tone` is ignored.
+
+<ApiTable>
+  <ApiRow name="dataKey" type="string">
+    The `config` key whose color paints the glyph, the marker, and the value. Omit it to fall back to the foreground color — which makes an alerting row read the same as any other, so pass it.
+  </ApiRow>
+</ApiTable>
+
+<ApiHeading>Legend</ApiHeading>
+
+The zone color key — one swatch and name per entry in `zones`, rendered above or below the tracks. Its presence enables it; omit it and none shows. Hidden while loading. Where `<ZoneLabel />` names the bands in place, this pairs each zone with its color, which is what the `"gradient"` variant needs: a ramp has no band edges to match a name to.
+
+<ApiTable>
+  <ApiRow name="variant" type='"square" | "circle" | "circle-outline" | "rounded-square" | "rounded-square-outline" | "vertical-bar" | "horizontal-bar"' default='"rounded-square"'>
+    The visual style of the legend indicators. Same set as every other EvilCharts legend.
+  </ApiRow>
+  <ApiRow name="align" type='"left" | "center" | "right"' default='"right"'>
+    Horizontal placement of the entries.
+  </ApiRow>
+  <ApiRow name="verticalAlign" type='"top" | "bottom"' default='"bottom"'>
+    Whether the key sits above the tracks or below them. The tracks fill the plot, so the legend sits in flow rather than floating over the chart — there is no `"middle"`.
+  </ApiRow>
+</ApiTable>
+
+<ApiHeading>Tooltip</ApiHeading>
+
+The hover tooltip. Its presence enables it; omit it and none shows. Hovering a row shows its label as the title, the zone its value landed in, and — when it has one — the zone it was expected to land in. Hidden automatically while loading.
+
+<ApiTable>
+  <ApiRow name="variant" type='"default" | "frosted-glass"' default='"default"'>
+    Controls the visual style of the tooltip surface.
+  </ApiRow>
+  <ApiRow name="roundness" type='"sm" | "md" | "lg" | "xl"' default='"lg"'>
+    Controls the border-radius of the tooltip.
+  </ApiRow>
+  <ApiRow name="position" type='"fixed" | "variable"' default='"variable"'>
+    Controls how the tooltip is anchored. `"variable"` follows the pointer (ECharts' default); `"fixed"` pins the tooltip near the top and only tracks the pointer's X.
+  </ApiRow>
+  <ApiRow name="actualLabel" type="string" default='"Actual"'>
+    Row title for the zone the value landed in.
+  </ApiRow>
+  <ApiRow name="expectedLabel" type="string" default='"Expected"'>
+    Row title for the zone the row was expected to land in.
+  </ApiRow>
+  <ApiRow name="valueFormatter" type="(value: number, row: ZoneChartRow) => string" default="(value) => value.toLocaleString()">
+    Formats a row's value wherever no explicit `valueLabel` is given.
+  </ApiRow>
+</ApiTable>

@@ -50,7 +50,7 @@ There is currently no automated test suite. For most changes, use scoped ESLint 
 
 ### Installable registry: `src/registry/`
 
-- `charts/`: 18 flat chart modules, one for each of nine chart types per provider: area, line, bar, composed, radar, pie, radial, sankey, and heatmap.
+- `charts/`: 19 flat chart modules: nine chart types for each provider (area, line, bar, composed, radar, pie, radial, sankey, and heatmap), plus the ECharts-only zone chart.
 - `ui/`: provider-specific shared chart primitives. Recharts currently has chart, tooltip, legend, dot, brush, and background modules. ECharts has chart, tooltip, legend, dot, and brush modules.
 - `examples/recharts/` and `examples/echarts/`: small `ex-*` documentation demos.
 - `blocks/recharts/` and `blocks/echarts/`: larger installable compositions prefixed `b-` on disk.
