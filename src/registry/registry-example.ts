@@ -2721,4 +2721,104 @@ export const examples: Registry["items"] = [
       },
     ],
   },
+  // ECharts Zone Chart (self-contained ECharts provider examples)
+  {
+    name: "ex-echarts-zone-chart",
+    registryDependencies: ["@evilcharts/echarts-zone-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/echarts/ex-echarts-zone-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
+    name: "ex-gradient-echarts-zone-chart",
+    registryDependencies: ["@evilcharts/echarts-zone-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/echarts/ex-gradient-echarts-zone-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
+    name: "ex-spectrum-echarts-zone-chart",
+    registryDependencies: ["@evilcharts/echarts-zone-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/echarts/ex-spectrum-echarts-zone-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
+    name: "ex-spectrum-gradient-echarts-zone-chart",
+    registryDependencies: ["@evilcharts/echarts-zone-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/echarts/ex-spectrum-gradient-echarts-zone-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
+    name: "ex-bare-echarts-zone-chart",
+    registryDependencies: ["@evilcharts/echarts-zone-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/echarts/ex-bare-echarts-zone-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
+    name: "ex-marker-echarts-zone-chart",
+    registryDependencies: ["@evilcharts/echarts-zone-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/echarts/ex-marker-echarts-zone-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
+    name: "ex-clickable-echarts-zone-chart",
+    registryDependencies: ["@evilcharts/echarts-zone-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/echarts/ex-clickable-echarts-zone-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
+    name: "ex-loading-state-echarts-zone-chart",
+    registryDependencies: ["@evilcharts/echarts-zone-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/echarts/ex-loading-state-echarts-zone-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
+    name: "ex-svg-renderer-echarts-zone-chart",
+    registryDependencies: ["@evilcharts/echarts-zone-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/echarts/ex-svg-renderer-echarts-zone-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
 ];

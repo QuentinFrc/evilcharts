@@ -367,6 +367,24 @@ export const Index: Record<string, any> = {
     categories: undefined,
     meta: undefined,
   },
+  "echarts-zone-chart": {
+    name: "echarts-zone-chart",
+    description: "Zone chart component rendered with Apache ECharts — one track per row, split into zones, with a marker at the row's value",
+    type: "registry:component",
+    registryDependencies: ["@evilcharts/echarts-chart","@evilcharts/echarts-tooltip","@evilcharts/echarts-legend"],
+    files: [{
+      path: "@/registry/charts/echarts-zone-chart.tsx",
+      type: "registry:component",
+      target: "components/evilcharts/charts/echarts-zone-chart.tsx"
+    }],
+    component: React.lazy(async () => {
+      const mod = await import("@/registry/charts/echarts-zone-chart.tsx")
+      const exportName = Object.keys(mod).find(key => typeof mod[key] === 'function' || typeof mod[key] === 'object') || item.name
+      return { default: mod.default || mod[exportName] }
+    }),
+    categories: undefined,
+    meta: undefined,
+  },
   "recharts-area-chart": {
     name: "recharts-area-chart",
     description: "Area chart component",
@@ -4795,6 +4813,168 @@ export const Index: Record<string, any> = {
     categories: undefined,
     meta: undefined,
   },
+  "ex-echarts-zone-chart": {
+    name: "ex-echarts-zone-chart",
+    description: "",
+    type: "registry:block",
+    registryDependencies: ["@evilcharts/echarts-zone-chart"],
+    files: [{
+      path: "@/registry/examples/echarts/ex-echarts-zone-chart.tsx",
+      type: "registry:block",
+      target: ""
+    }],
+    component: React.lazy(async () => {
+      const mod = await import("@/registry/examples/echarts/ex-echarts-zone-chart.tsx")
+      const exportName = Object.keys(mod).find(key => typeof mod[key] === 'function' || typeof mod[key] === 'object') || item.name
+      return { default: mod.default || mod[exportName] }
+    }),
+    categories: undefined,
+    meta: undefined,
+  },
+  "ex-gradient-echarts-zone-chart": {
+    name: "ex-gradient-echarts-zone-chart",
+    description: "",
+    type: "registry:block",
+    registryDependencies: ["@evilcharts/echarts-zone-chart"],
+    files: [{
+      path: "@/registry/examples/echarts/ex-gradient-echarts-zone-chart.tsx",
+      type: "registry:block",
+      target: ""
+    }],
+    component: React.lazy(async () => {
+      const mod = await import("@/registry/examples/echarts/ex-gradient-echarts-zone-chart.tsx")
+      const exportName = Object.keys(mod).find(key => typeof mod[key] === 'function' || typeof mod[key] === 'object') || item.name
+      return { default: mod.default || mod[exportName] }
+    }),
+    categories: undefined,
+    meta: undefined,
+  },
+  "ex-spectrum-echarts-zone-chart": {
+    name: "ex-spectrum-echarts-zone-chart",
+    description: "",
+    type: "registry:block",
+    registryDependencies: ["@evilcharts/echarts-zone-chart"],
+    files: [{
+      path: "@/registry/examples/echarts/ex-spectrum-echarts-zone-chart.tsx",
+      type: "registry:block",
+      target: ""
+    }],
+    component: React.lazy(async () => {
+      const mod = await import("@/registry/examples/echarts/ex-spectrum-echarts-zone-chart.tsx")
+      const exportName = Object.keys(mod).find(key => typeof mod[key] === 'function' || typeof mod[key] === 'object') || item.name
+      return { default: mod.default || mod[exportName] }
+    }),
+    categories: undefined,
+    meta: undefined,
+  },
+  "ex-spectrum-gradient-echarts-zone-chart": {
+    name: "ex-spectrum-gradient-echarts-zone-chart",
+    description: "",
+    type: "registry:block",
+    registryDependencies: ["@evilcharts/echarts-zone-chart"],
+    files: [{
+      path: "@/registry/examples/echarts/ex-spectrum-gradient-echarts-zone-chart.tsx",
+      type: "registry:block",
+      target: ""
+    }],
+    component: React.lazy(async () => {
+      const mod = await import("@/registry/examples/echarts/ex-spectrum-gradient-echarts-zone-chart.tsx")
+      const exportName = Object.keys(mod).find(key => typeof mod[key] === 'function' || typeof mod[key] === 'object') || item.name
+      return { default: mod.default || mod[exportName] }
+    }),
+    categories: undefined,
+    meta: undefined,
+  },
+  "ex-bare-echarts-zone-chart": {
+    name: "ex-bare-echarts-zone-chart",
+    description: "",
+    type: "registry:block",
+    registryDependencies: ["@evilcharts/echarts-zone-chart"],
+    files: [{
+      path: "@/registry/examples/echarts/ex-bare-echarts-zone-chart.tsx",
+      type: "registry:block",
+      target: ""
+    }],
+    component: React.lazy(async () => {
+      const mod = await import("@/registry/examples/echarts/ex-bare-echarts-zone-chart.tsx")
+      const exportName = Object.keys(mod).find(key => typeof mod[key] === 'function' || typeof mod[key] === 'object') || item.name
+      return { default: mod.default || mod[exportName] }
+    }),
+    categories: undefined,
+    meta: undefined,
+  },
+  "ex-marker-echarts-zone-chart": {
+    name: "ex-marker-echarts-zone-chart",
+    description: "",
+    type: "registry:block",
+    registryDependencies: ["@evilcharts/echarts-zone-chart"],
+    files: [{
+      path: "@/registry/examples/echarts/ex-marker-echarts-zone-chart.tsx",
+      type: "registry:block",
+      target: ""
+    }],
+    component: React.lazy(async () => {
+      const mod = await import("@/registry/examples/echarts/ex-marker-echarts-zone-chart.tsx")
+      const exportName = Object.keys(mod).find(key => typeof mod[key] === 'function' || typeof mod[key] === 'object') || item.name
+      return { default: mod.default || mod[exportName] }
+    }),
+    categories: undefined,
+    meta: undefined,
+  },
+  "ex-clickable-echarts-zone-chart": {
+    name: "ex-clickable-echarts-zone-chart",
+    description: "",
+    type: "registry:block",
+    registryDependencies: ["@evilcharts/echarts-zone-chart"],
+    files: [{
+      path: "@/registry/examples/echarts/ex-clickable-echarts-zone-chart.tsx",
+      type: "registry:block",
+      target: ""
+    }],
+    component: React.lazy(async () => {
+      const mod = await import("@/registry/examples/echarts/ex-clickable-echarts-zone-chart.tsx")
+      const exportName = Object.keys(mod).find(key => typeof mod[key] === 'function' || typeof mod[key] === 'object') || item.name
+      return { default: mod.default || mod[exportName] }
+    }),
+    categories: undefined,
+    meta: undefined,
+  },
+  "ex-loading-state-echarts-zone-chart": {
+    name: "ex-loading-state-echarts-zone-chart",
+    description: "",
+    type: "registry:block",
+    registryDependencies: ["@evilcharts/echarts-zone-chart"],
+    files: [{
+      path: "@/registry/examples/echarts/ex-loading-state-echarts-zone-chart.tsx",
+      type: "registry:block",
+      target: ""
+    }],
+    component: React.lazy(async () => {
+      const mod = await import("@/registry/examples/echarts/ex-loading-state-echarts-zone-chart.tsx")
+      const exportName = Object.keys(mod).find(key => typeof mod[key] === 'function' || typeof mod[key] === 'object') || item.name
+      return { default: mod.default || mod[exportName] }
+    }),
+    categories: undefined,
+    meta: undefined,
+  },
+  "ex-svg-renderer-echarts-zone-chart": {
+    name: "ex-svg-renderer-echarts-zone-chart",
+    description: "",
+    type: "registry:block",
+    registryDependencies: ["@evilcharts/echarts-zone-chart"],
+    files: [{
+      path: "@/registry/examples/echarts/ex-svg-renderer-echarts-zone-chart.tsx",
+      type: "registry:block",
+      target: ""
+    }],
+    component: React.lazy(async () => {
+      const mod = await import("@/registry/examples/echarts/ex-svg-renderer-echarts-zone-chart.tsx")
+      const exportName = Object.keys(mod).find(key => typeof mod[key] === 'function' || typeof mod[key] === 'object') || item.name
+      return { default: mod.default || mod[exportName] }
+    }),
+    categories: undefined,
+    meta: undefined,
+  },
   "monospace-bar-chart": {
     name: "monospace-bar-chart",
     description: "Monospace bar chart component",
@@ -5239,6 +5419,60 @@ export const Index: Record<string, any> = {
     }],
     component: React.lazy(async () => {
       const mod = await import("@/registry/blocks/echarts/b-incidents-echarts-heatmap-chart.tsx")
+      const exportName = Object.keys(mod).find(key => typeof mod[key] === 'function' || typeof mod[key] === 'object') || item.name
+      return { default: mod.default || mod[exportName] }
+    }),
+    categories: undefined,
+    meta: undefined,
+  },
+  "difficulty-echarts-zone-chart": {
+    name: "difficulty-echarts-zone-chart",
+    description: "Declared vs perceived difficulty across a set of exercises, with a needs-review count",
+    type: "registry:block",
+    registryDependencies: ["@evilcharts/echarts-zone-chart"],
+    files: [{
+      path: "@/registry/blocks/echarts/b-difficulty-echarts-zone-chart.tsx",
+      type: "registry:block",
+      target: "components/evilcharts/blocks/difficulty-echarts-zone-chart.tsx"
+    }],
+    component: React.lazy(async () => {
+      const mod = await import("@/registry/blocks/echarts/b-difficulty-echarts-zone-chart.tsx")
+      const exportName = Object.keys(mod).find(key => typeof mod[key] === 'function' || typeof mod[key] === 'object') || item.name
+      return { default: mod.default || mod[exportName] }
+    }),
+    categories: undefined,
+    meta: undefined,
+  },
+  "score-echarts-zone-chart": {
+    name: "score-echarts-zone-chart",
+    description: "A single reading on one tall track, against the target band it was supposed to land in",
+    type: "registry:block",
+    registryDependencies: ["@evilcharts/echarts-zone-chart"],
+    files: [{
+      path: "@/registry/blocks/echarts/b-score-echarts-zone-chart.tsx",
+      type: "registry:block",
+      target: "components/evilcharts/blocks/score-echarts-zone-chart.tsx"
+    }],
+    component: React.lazy(async () => {
+      const mod = await import("@/registry/blocks/echarts/b-score-echarts-zone-chart.tsx")
+      const exportName = Object.keys(mod).find(key => typeof mod[key] === 'function' || typeof mod[key] === 'object') || item.name
+      return { default: mod.default || mod[exportName] }
+    }),
+    categories: undefined,
+    meta: undefined,
+  },
+  "latency-echarts-zone-chart": {
+    name: "latency-echarts-zone-chart",
+    description: "Endpoint p95 latency against each endpoint's target band, on the heat skin",
+    type: "registry:block",
+    registryDependencies: ["@evilcharts/echarts-zone-chart"],
+    files: [{
+      path: "@/registry/blocks/echarts/b-latency-echarts-zone-chart.tsx",
+      type: "registry:block",
+      target: "components/evilcharts/blocks/latency-echarts-zone-chart.tsx"
+    }],
+    component: React.lazy(async () => {
+      const mod = await import("@/registry/blocks/echarts/b-latency-echarts-zone-chart.tsx")
       const exportName = Object.keys(mod).find(key => typeof mod[key] === 'function' || typeof mod[key] === 'object') || item.name
       return { default: mod.default || mod[exportName] }
     }),

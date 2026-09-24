@@ -8,6 +8,7 @@ import {
   RadarChartIcon,
   SankeyChartIcon,
   HeatmapChartIcon,
+  ZoneChartIcon,
 } from "@/assets/icons";
 
 // Custom icons for each item in the sidebar of MDX files.
@@ -36,6 +37,8 @@ export function getNavItemIcon(tag?: string) {
       return <SankeyChartIcon />;
     case "heatmap-chart":
       return <HeatmapChartIcon />;
+    case "zone-chart":
+      return <ZoneChartIcon />;
     default:
       return null;
   }

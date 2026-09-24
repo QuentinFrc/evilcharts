@@ -357,4 +357,48 @@ export const blocks: Registry["items"] = [
       },
     ],
   },
+  {
+    name: "difficulty-echarts-zone-chart",
+    description:
+      "Declared vs perceived difficulty across a set of exercises, with a needs-review count",
+    dependencies: ["echarts", "motion"],
+    registryDependencies: ["@evilcharts/echarts-zone-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "blocks/echarts/b-difficulty-echarts-zone-chart.tsx",
+        type: "registry:block",
+        target: TARGET_BASE_PATH + "/difficulty-echarts-zone-chart.tsx",
+      },
+    ],
+  },
+  {
+    name: "score-echarts-zone-chart",
+    description:
+      "A single reading on one tall track, against the target band it was supposed to land in",
+    dependencies: ["echarts", "motion"],
+    registryDependencies: ["@evilcharts/echarts-zone-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "blocks/echarts/b-score-echarts-zone-chart.tsx",
+        type: "registry:block",
+        target: TARGET_BASE_PATH + "/score-echarts-zone-chart.tsx",
+      },
+    ],
+  },
+  {
+    name: "latency-echarts-zone-chart",
+    description: "Endpoint p95 latency against each endpoint's target band, on the heat skin",
+    dependencies: ["echarts", "motion"],
+    registryDependencies: ["@evilcharts/echarts-zone-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "blocks/echarts/b-latency-echarts-zone-chart.tsx",
+        type: "registry:block",
+        target: TARGET_BASE_PATH + "/latency-echarts-zone-chart.tsx",
+      },
+    ],
+  },
 ];

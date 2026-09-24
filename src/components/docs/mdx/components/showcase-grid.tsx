@@ -10,6 +10,7 @@ import { HeatmapPreview } from "@/components/docs/svg-previews/heatmap-preview";
 import { SankeyPreview } from "@/components/docs/svg-previews/sankey-preview";
 import { RadialPreview } from "@/components/docs/svg-previews/radial-preview";
 import { RadarPreview } from "@/components/docs/svg-previews/radar-preview";
+import { ZonePreview } from "@/components/docs/svg-previews/zone-preview";
 import { LinePreview } from "@/components/docs/svg-previews/line-preview";
 import { AreaPreview } from "@/components/docs/svg-previews/area-preview";
 import { PiePreview } from "@/components/docs/svg-previews/pie-preview";
@@ -82,6 +83,13 @@ const CHARTS: Chart[] = [
     description: "Map daily activity onto a calendar, GitHub style.",
     Component: HeatmapPreview,
     slug: "heatmap-chart",
+    providers: ["echarts"],
+  },
+  {
+    name: "Zone Chart",
+    description: "Read each row against the zone it was expected to land in.",
+    Component: ZonePreview,
+    slug: "zone-chart",
     providers: ["echarts"],
   },
 ];

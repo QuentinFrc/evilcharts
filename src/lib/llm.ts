@@ -49,6 +49,11 @@ const showcaseItems = [
     description: "Map daily activity onto a calendar, GitHub style.",
     url: "/docs/echarts/heatmap-chart",
   },
+  {
+    name: "Zone Chart",
+    description: "Read each row against the zone it was expected to land in.",
+    url: "/docs/echarts/zone-chart",
+  },
 ]
 
 const packageInstallCommands = {

@@ -1421,3 +1421,46 @@ export function EChartsIcon({
     </svg>
   );
 }
+
+export function ZoneChartIcon({
+  fill = "currentColor",
+  width = "1em",
+  height = "1em",
+  ...props
+}: IconProps) {
+  // Three tracks of four zones, the highlighted one carrying the marker.
+  const rows: [number, number, number][] = [
+    [2.5, 0, 10],
+    [8, 2, 3.5],
+    [13.5, 3, 15.5],
+  ];
+  return (
+    <svg
+      height={height}
+      width={width}
+      viewBox="0 0 18 18"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <g fill={fill}>
+        {rows.map(([y, expected, marker]) => (
+          <g key={y}>
+            {[0, 1, 2, 3].map((zone) => (
+              <rect
+                key={zone}
+                x={1 + zone * 4}
+                y={y}
+                width={3.5}
+                height={2.5}
+                rx={0.75}
+                opacity={zone === expected ? 0.55 : 0.18}
+              />
+            ))}
+            <circle cx={marker} cy={y + 1.25} r={1.5} />
+          </g>
+        ))}
+      </g>
+    </svg>
+  );
+}

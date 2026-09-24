@@ -27,6 +27,8 @@ export const SITE_KEYWORDS: string[] = [
   "sankey chart",
   "heatmap chart",
   "calendar heatmap",
+  "zone chart",
+  "tolerance chart",
   "composed chart",
   "data visualization",
   "chart components",

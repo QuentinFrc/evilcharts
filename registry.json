@@ -362,6 +362,27 @@
       ]
     },
     {
+      "name": "echarts-zone-chart",
+      "description": "Zone chart component rendered with Apache ECharts — one track per row, split into zones, with a marker at the row's value",
+      "registryDependencies": [
+        "@evilcharts/echarts-chart",
+        "@evilcharts/echarts-tooltip",
+        "@evilcharts/echarts-legend"
+      ],
+      "dependencies": [
+        "echarts",
+        "motion"
+      ],
+      "type": "registry:component",
+      "files": [
+        {
+          "path": "src/registry/charts/echarts-zone-chart.tsx",
+          "type": "registry:component",
+          "target": "components/evilcharts/charts/echarts-zone-chart.tsx"
+        }
+      ]
+    },
+    {
       "name": "recharts-area-chart",
       "description": "Area chart component",
       "registryDependencies": [
@@ -3639,6 +3660,123 @@
       ]
     },
     {
+      "name": "ex-echarts-zone-chart",
+      "registryDependencies": [
+        "@evilcharts/echarts-zone-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/examples/echarts/ex-echarts-zone-chart.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
+      "name": "ex-gradient-echarts-zone-chart",
+      "registryDependencies": [
+        "@evilcharts/echarts-zone-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/examples/echarts/ex-gradient-echarts-zone-chart.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
+      "name": "ex-spectrum-echarts-zone-chart",
+      "registryDependencies": [
+        "@evilcharts/echarts-zone-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/examples/echarts/ex-spectrum-echarts-zone-chart.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
+      "name": "ex-spectrum-gradient-echarts-zone-chart",
+      "registryDependencies": [
+        "@evilcharts/echarts-zone-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/examples/echarts/ex-spectrum-gradient-echarts-zone-chart.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
+      "name": "ex-bare-echarts-zone-chart",
+      "registryDependencies": [
+        "@evilcharts/echarts-zone-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/examples/echarts/ex-bare-echarts-zone-chart.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
+      "name": "ex-marker-echarts-zone-chart",
+      "registryDependencies": [
+        "@evilcharts/echarts-zone-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/examples/echarts/ex-marker-echarts-zone-chart.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
+      "name": "ex-clickable-echarts-zone-chart",
+      "registryDependencies": [
+        "@evilcharts/echarts-zone-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/examples/echarts/ex-clickable-echarts-zone-chart.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
+      "name": "ex-loading-state-echarts-zone-chart",
+      "registryDependencies": [
+        "@evilcharts/echarts-zone-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/examples/echarts/ex-loading-state-echarts-zone-chart.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
+      "name": "ex-svg-renderer-echarts-zone-chart",
+      "registryDependencies": [
+        "@evilcharts/echarts-zone-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/examples/echarts/ex-svg-renderer-echarts-zone-chart.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
       "name": "monospace-bar-chart",
       "description": "Monospace bar chart component",
       "dependencies": [
@@ -4110,6 +4248,63 @@
           "path": "src/registry/blocks/echarts/b-incidents-echarts-heatmap-chart.tsx",
           "type": "registry:block",
           "target": "components/evilcharts/blocks/incidents-echarts-heatmap-chart.tsx"
+        }
+      ]
+    },
+    {
+      "name": "difficulty-echarts-zone-chart",
+      "description": "Declared vs perceived difficulty across a set of exercises, with a needs-review count",
+      "dependencies": [
+        "echarts",
+        "motion"
+      ],
+      "registryDependencies": [
+        "@evilcharts/echarts-zone-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/blocks/echarts/b-difficulty-echarts-zone-chart.tsx",
+          "type": "registry:block",
+          "target": "components/evilcharts/blocks/difficulty-echarts-zone-chart.tsx"
+        }
+      ]
+    },
+    {
+      "name": "score-echarts-zone-chart",
+      "description": "A single reading on one tall track, against the target band it was supposed to land in",
+      "dependencies": [
+        "echarts",
+        "motion"
+      ],
+      "registryDependencies": [
+        "@evilcharts/echarts-zone-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/blocks/echarts/b-score-echarts-zone-chart.tsx",
+          "type": "registry:block",
+          "target": "components/evilcharts/blocks/score-echarts-zone-chart.tsx"
+        }
+      ]
+    },
+    {
+      "name": "latency-echarts-zone-chart",
+      "description": "Endpoint p95 latency against each endpoint's target band, on the heat skin",
+      "dependencies": [
+        "echarts",
+        "motion"
+      ],
+      "registryDependencies": [
+        "@evilcharts/echarts-zone-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/blocks/echarts/b-latency-echarts-zone-chart.tsx",
+          "type": "registry:block",
+          "target": "components/evilcharts/blocks/latency-echarts-zone-chart.tsx"
         }
       ]
     }
