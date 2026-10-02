@@ -1,7 +1,4 @@
 {
   "title": "Heatmap Chart",
-  "pages": [
-    "static",
-    "blocks"
-  ]
+  "pages": ["static", "blocks"]
 }

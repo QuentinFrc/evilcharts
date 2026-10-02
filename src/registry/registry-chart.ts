@@ -328,4 +328,19 @@ export const charts: Registry["items"] = [
       },
     ],
   },
+  {
+    name: "recharts-heatmap-chart",
+    description:
+      "Calendar heatmap component rendered with Recharts — GitHub contribution graph style",
+    registryDependencies: ["@evilcharts/recharts-chart", "@evilcharts/recharts-tooltip"],
+    dependencies: ["recharts", "motion"],
+    type: "registry:component",
+    files: [
+      {
+        path: "charts/recharts-heatmap-chart.tsx",
+        type: "registry:component",
+        target: TARGET_BASE_PATH + "/recharts-heatmap-chart.tsx",
+      },
+    ],
+  },
 ];

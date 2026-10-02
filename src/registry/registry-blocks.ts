@@ -60,6 +60,50 @@ export const blocks: Registry["items"] = [
     ],
   },
   {
+    name: "contributions-heatmap-chart",
+    description: "GitHub-style contribution graph with a yearly total and longest-streak summary",
+    dependencies: ["recharts", "motion"],
+    registryDependencies: ["@evilcharts/recharts-heatmap-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "blocks/recharts/b-contributions-heatmap-chart.tsx",
+        type: "registry:block",
+        target: TARGET_BASE_PATH + "/contributions-heatmap-chart.tsx",
+      },
+    ],
+  },
+  {
+    name: "deploys-heatmap-chart",
+    description:
+      "Six months of deploy frequency on a Monday-first calendar with a three-stat header",
+    dependencies: ["recharts", "motion"],
+    registryDependencies: ["@evilcharts/recharts-heatmap-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "blocks/recharts/b-deploys-heatmap-chart.tsx",
+        type: "registry:block",
+        target: TARGET_BASE_PATH + "/deploys-heatmap-chart.tsx",
+      },
+    ],
+  },
+  {
+    name: "incidents-heatmap-chart",
+    description:
+      "Quarter of on-call alerts with severity thresholds and a selected-day detail header",
+    dependencies: ["recharts", "motion"],
+    registryDependencies: ["@evilcharts/recharts-heatmap-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "blocks/recharts/b-incidents-heatmap-chart.tsx",
+        type: "registry:block",
+        target: TARGET_BASE_PATH + "/incidents-heatmap-chart.tsx",
+      },
+    ],
+  },
+  {
     name: "latency-echarts-area-chart",
     description: "Latency percentile monitor with an HTML stat row, on the ECharts area chart",
     dependencies: ["echarts", "motion"],
