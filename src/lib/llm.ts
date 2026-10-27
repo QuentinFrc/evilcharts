@@ -47,7 +47,7 @@ const showcaseItems = [
   {
     name: "Heatmap Chart",
     description: "Map daily activity onto a calendar, GitHub style.",
-    url: "/docs/echarts/heatmap-chart",
+    url: "/docs/recharts/heatmap-chart",
   },
 ]
 

@@ -18,12 +18,8 @@ const RECHARTS_CHARTS = [
   "pie-chart",
   "radial-chart",
   "sankey-chart",
+  "heatmap-chart",
 ].join("|");
-
-// Charts that exist for ECharts only (no Recharts twin). They get the same
-// folder → default-variant redirect under their provider, but must stay out
-// of the legacy pre-provider-split rules below, which land on /docs/recharts.
-const ECHARTS_ONLY_CHARTS = ["heatmap-chart"].join("|");
 
 // Plural spellings from a much older version of the site, still cached by Google.
 // They can't be regex-folded into the singular rules, so they stay enumerated.
@@ -55,11 +51,6 @@ const nextConfig: NextConfig = {
       {
         source: `/docs/:provider(${PROVIDERS})/:chart(${RECHARTS_CHARTS})`,
         destination: "/docs/:provider/:chart/static",
-        permanent: true,
-      },
-      {
-        source: `/docs/echarts/:chart(${ECHARTS_ONLY_CHARTS})`,
-        destination: "/docs/echarts/:chart/static",
         permanent: true,
       },
 
