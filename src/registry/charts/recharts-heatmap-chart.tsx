@@ -1,6 +1,22 @@
 "use client";
 
 import {
+  Children,
+  createContext,
+  isValidElement,
+  memo,
+  use,
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+  type ComponentProps,
+  type FC,
+  type ReactNode,
+} from "react";
+import {
   Scatter,
   ScatterChart,
   XAxis,
@@ -11,19 +27,6 @@ import {
   type XAxisTickContentProps,
   type YAxisTickContentProps,
 } from "recharts";
-import {
-  Children,
-  createContext,
-  isValidElement,
-  use,
-  useCallback,
-  useId,
-  useMemo,
-  useState,
-  type ComponentProps,
-  type FC,
-  type ReactNode,
-} from "react";
 import {
   ChartContainer,
   LoadingIndicator,
@@ -59,6 +62,14 @@ const MONTH_LABEL_HEIGHT = 22;
 const EDGE_PADDING = 2; // keeps the outermost cells' hover ring inside the plot
 const LABEL_MARGIN = 8; // gap between the month labels' baseline and the grid
 const MIN_MONTH_LABEL_COLUMNS = 3; // a month label is dropped when the next one is closer than this
+// Module-level so the margin keeps its identity across renders: a new object
+// makes Recharts recompute the layout and remount every cell.
+const CHART_MARGIN = {
+  top: EDGE_PADDING,
+  right: EDGE_PADDING,
+  bottom: EDGE_PADDING,
+  left: EDGE_PADDING,
+};
 
 const CELL_DIM_OPACITY = 0.55; // cells outside the current selection — soft, so the ramp still reads
 const HOVER_RING_WIDTH = 1; // outline drawn around the hovered cell, in pixels
@@ -453,6 +464,67 @@ function computeLayout(
   };
 }
 
+type CellStatus = "idle" | "selected" | "dimmed"; // a cell's look relative to the selection
+
+/**
+ * Selection and intro state, kept outside React state on purpose. Recharts
+ * remounts every scatter symbol whenever the <Scatter> element receives new
+ * props, so a selection held in React state would rebuild all ~365 cells (and
+ * replay their intro) on each click. Instead each cell subscribes to its own
+ * status and only the cells whose status flips re-render.
+ */
+type HeatmapStore = {
+  getSelected: () => string | null; // currently selected ISO date, or null when none
+  subscribe: (listener: () => void) => () => void; // useSyncExternalStore contract
+  toggle: (date: string, value: number) => void; // selects a day, or clears it when already selected
+  setOnSelectionChange: (callback: EvilHeatmapChartProps["onSelectionChange"]) => void; // synced by the root
+  isRevealPending: () => boolean; // true until the first real cells mount — later remounts skip the intro
+  armReveal: () => void; // the next cells to mount play the intro again (after a loading state)
+  settleReveal: () => void; // called once cells have mounted
+};
+
+function createHeatmapStore(initialSelected: string | null): HeatmapStore {
+  let selected = initialSelected;
+  let onSelectionChange: EvilHeatmapChartProps["onSelectionChange"];
+  let revealPending = true;
+  const listeners = new Set<() => void>();
+
+  return {
+    getSelected: () => selected,
+    subscribe: (listener) => {
+      listeners.add(listener);
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+    toggle: (date, value) => {
+      selected = selected === date ? null : date;
+      for (const listener of listeners) listener();
+      onSelectionChange?.(selected === null ? null : { date: selected, value });
+    },
+    setOnSelectionChange: (callback) => {
+      onSelectionChange = callback;
+    },
+    isRevealPending: () => revealPending,
+    armReveal: () => {
+      revealPending = true;
+    },
+    settleReveal: () => {
+      revealPending = false;
+    },
+  };
+}
+
+/** The cell's look relative to the selection; re-renders only when that look changes. */
+function useCellStatus(store: HeatmapStore, date: string): CellStatus {
+  const getStatus = (): CellStatus => {
+    const selected = store.getSelected();
+    if (selected === null) return "idle";
+    return selected === date ? "selected" : "dimmed";
+  };
+  return useSyncExternalStore(store.subscribe, getStatus, getStatus);
+}
+
 /**
  * Shared state for every part of the chart. Lifted into <EvilHeatmapChart /> so
  * the cells, axes, tooltip, and legend can read it without prop drilling.
@@ -468,8 +540,7 @@ type HeatmapChartContextValue = {
   weekStart: WeekStart; // which weekday sits on the top row
   isLoading: boolean; // whether the chart shows its loading skeleton
   revealEnabled: boolean; // whether cells play the intro sweep when they mount
-  selectedDate: string | null; // currently selected ISO date, or null when none
-  toggleDate: (date: string) => void; // selects a day, or clears it when already selected
+  store: HeatmapStore; // selection + intro state, stable for the chart's lifetime
 };
 
 const HeatmapChartContext = createContext<HeatmapChartContextValue | null>(null);
@@ -526,9 +597,20 @@ export function EvilHeatmapChart({
 }: EvilHeatmapChartProps) {
   const chartId = useId().replace(/:/g, ""); // colon-free id keeps CSS/SVG selectors valid
   const shouldReduceMotion = useReducedMotion();
-  const [selectedDate, setSelectedDate] = useState<string | null>(defaultSelectedDate);
+  const [store] = useState(() => createHeatmapStore(defaultSelectedDate));
 
-  const { cell, monthLabel, dayLabel, legend } = useMemo(() => collectSlots(children), [children]);
+  const slots = useMemo(() => collectSlots(children), [children]);
+  const { legend } = slots;
+  const monthLabels = slots.monthLabel?.labels;
+  const dayLabels = slots.dayLabel?.labels;
+  // `children` is a new element tree on every parent render, so the <Cell />
+  // slot is re-keyed on its values — a fresh object would ripple down into the
+  // Recharts tree and remount every cell.
+  const { dataKey, radius, gap, isClickable } = slots.cell;
+  const cell = useMemo(
+    () => ({ dataKey, radius, gap, isClickable }),
+    [dataKey, radius, gap, isClickable],
+  );
 
   const colorsCount = config[cell.dataKey] ? getColorsCount(config[cell.dataKey]) : 1;
 
@@ -537,25 +619,17 @@ export function EvilHeatmapChart({
     [data, range, weekStart, colorsCount, scale, thresholds],
   );
 
-  const toggleDate = useCallback(
-    (date: string) => {
-      const next = selectedDate === date ? null : date;
-      setSelectedDate(next);
-      if (!onSelectionChange) return;
-      if (next === null) {
-        onSelectionChange(null);
-        return;
-      }
-      const item = grid.cells.find((candidate) => candidate.date === next);
-      onSelectionChange({ date: next, value: item?.value ?? 0 });
-    },
-    [selectedDate, onSelectionChange, grid.cells],
-  );
+  useEffect(() => {
+    store.setOnSelectionChange(onSelectionChange);
+  }, [store, onSelectionChange]);
 
-  // The intro is a mount-time animation on each cell, so it plays once per chart
-  // instance and never replays on selection, theme, or resize updates. Leaving
-  // the loading state swaps the skeleton cells for real ones, which mounts them
-  // afresh and plays the sweep again.
+  // The intro is a mount-time animation on each cell. It plays when the first
+  // real cells mount and again after each loading state; resizes and data
+  // updates remount the Recharts symbols but skip it (see HeatmapStore).
+  useEffect(() => {
+    if (isLoading) store.armReveal();
+  }, [store, isLoading]);
+
   const revealEnabled = animation && animationType !== "none" && !shouldReduceMotion;
 
   const contextValue = useMemo<HeatmapChartContextValue>(
@@ -565,13 +639,12 @@ export function EvilHeatmapChart({
       grid,
       colorsCount,
       fixedCellSize: cellSize,
-      hasDayLabels: dayLabel !== null,
-      hasMonthLabels: monthLabel !== null,
+      hasDayLabels: dayLabels !== undefined,
+      hasMonthLabels: monthLabels !== undefined,
       weekStart,
       isLoading,
       revealEnabled,
-      selectedDate,
-      toggleDate,
+      store,
     }),
     [
       config,
@@ -579,13 +652,12 @@ export function EvilHeatmapChart({
       grid,
       colorsCount,
       cellSize,
-      dayLabel,
-      monthLabel,
+      dayLabels,
+      monthLabels,
       weekStart,
       isLoading,
       revealEnabled,
-      selectedDate,
-      toggleDate,
+      store,
     ],
   );
 
@@ -599,26 +671,12 @@ export function EvilHeatmapChart({
         footer={legend && !isLoading && <HeatmapLegend legend={legend} />}
       >
         <LoadingIndicator isLoading={isLoading} />
-        <ScatterChart
-          id={chartId}
-          margin={{
-            top: EDGE_PADDING,
-            right: EDGE_PADDING,
-            bottom: EDGE_PADDING,
-            left: EDGE_PADDING,
-          }}
-          {...chartProps}
-        >
-          <HeatmapAxes monthLabels={monthLabel?.labels} dayLabels={dayLabel?.labels} />
-          {isLoading && <ShimmerGradient id={shimmerId} animated={!shouldReduceMotion} />}
-          <Scatter
-            data={grid.cells}
-            isAnimationActive={false}
-            shape={
-              isLoading
-                ? (props: ScatterShapeProps) => <LoadingCell {...props} gradientId={shimmerId} />
-                : (props: ScatterShapeProps) => <HeatmapCell {...props} />
-            }
+        <ScatterChart id={chartId} margin={CHART_MARGIN} {...chartProps}>
+          <HeatmapPlot
+            monthLabels={monthLabels}
+            dayLabels={dayLabels}
+            shimmerId={shimmerId}
+            animateShimmer={!shouldReduceMotion}
           />
           {children}
         </ScatterChart>
@@ -627,7 +685,92 @@ export function EvilHeatmapChart({
   );
 }
 
+type HeatmapPlotProps = {
+  monthLabels: string[] | undefined; // twelve month names, or undefined to hide the axis
+  dayLabels: string[] | undefined; // seven day names, Sunday first, or undefined to hide the axis
+  shimmerId: string; // gradient id shared by the skeleton cells
+  animateShimmer: boolean; // false parks the loading sweep (reduced motion)
+};
+
+/**
+ * Everything drawn inside the Recharts tree: the axes, the cells, and the
+ * loading gradient. The layout is measured once here and handed down. The
+ * <Scatter> element is memoized on what actually moves the cells — Recharts
+ * remounts every symbol when it gets new props — and the cells read their
+ * selection status from the store, so a click never rebuilds the grid.
+ */
+const HeatmapPlot = memo(function HeatmapPlot({
+  monthLabels,
+  dayLabels,
+  shimmerId,
+  animateShimmer,
+}: HeatmapPlotProps) {
+  const { cell, grid, colorsCount, isLoading, revealEnabled, store } = useHeatmapChart();
+  const layout = useHeatmapLayout();
+
+  const gap = Math.min(cell.gap, layout.cellSize - 1);
+  const size = Math.max(1, layout.cellSize - gap);
+  const radius = Math.min(cell.radius, size / 2);
+  const { dataKey, isClickable } = cell;
+  const { levels } = grid;
+
+  const renderCell = useCallback(
+    ({ cx, cy, payload }: ScatterShapeProps) => {
+      const day = payload as GridCell | undefined;
+      if (isLoading) {
+        return <LoadingCell cx={cx} cy={cy} size={size} radius={radius} gradientId={shimmerId} />;
+      }
+      if (!day) return <g />;
+      return (
+        <HeatmapCell
+          cx={cx}
+          cy={cy}
+          size={size}
+          radius={radius}
+          date={day.date}
+          value={day.value}
+          column={day.column}
+          fill={
+            day.level === 0
+              ? undefined
+              : `var(--color-${dataKey}-${rampIndex(day.level, levels, colorsCount)})`
+          }
+          isClickable={isClickable}
+          reveal={revealEnabled}
+          store={store}
+        />
+      );
+    },
+    [
+      isLoading,
+      size,
+      radius,
+      shimmerId,
+      dataKey,
+      levels,
+      colorsCount,
+      isClickable,
+      revealEnabled,
+      store,
+    ],
+  );
+
+  const scatter = useMemo(
+    () => <Scatter data={grid.cells} isAnimationActive={false} shape={renderCell} />,
+    [grid.cells, renderCell],
+  );
+
+  return (
+    <>
+      <HeatmapAxes layout={layout} monthLabels={monthLabels} dayLabels={dayLabels} />
+      {isLoading && <ShimmerGradient id={shimmerId} animated={animateShimmer} />}
+      {scatter}
+    </>
+  );
+});
+
 type HeatmapAxesProps = {
+  layout: Layout; // the measured cell layout
   monthLabels: string[] | undefined; // twelve month names, or undefined to hide the axis
   dayLabels: string[] | undefined; // seven day names, Sunday first, or undefined to hide the axis
 };
@@ -637,9 +780,8 @@ type HeatmapAxesProps = {
  * cells, so one unit along either axis is exactly one cell; the axes double as
  * the month labels (top) and weekday labels (left).
  */
-function HeatmapAxes({ monthLabels, dayLabels }: HeatmapAxesProps) {
+function HeatmapAxes({ layout, monthLabels, dayLabels }: HeatmapAxesProps) {
   const { grid, weekStart } = useHeatmapChart();
-  const layout = useHeatmapLayout();
   const firstDay = weekStart === "monday" ? 1 : 0;
 
   const monthByColumn = useMemo(
@@ -717,32 +859,51 @@ function HeatmapAxes({ monthLabels, dayLabels }: HeatmapAxesProps) {
   );
 }
 
-type HeatmapCellProps = {
-  cx?: number; // pixel center of the cell along the columns axis
-  cy?: number; // pixel center of the cell along the rows axis
-  payload?: GridCell; // the day this cell stands for
+type CellGeometry = {
+  cx: number | undefined; // pixel center of the cell along the columns axis
+  cy: number | undefined; // pixel center of the cell along the rows axis
+  size: number; // side of the painted square, gap already removed
+  radius: number; // corner radius, clamped to the square
+};
+
+type HeatmapCellProps = CellGeometry & {
+  date: string; // the day this cell stands for
+  value: number; // that day's value
+  column: number; // week column, drives the intro stagger
+  fill: string | undefined; // ramp color, or undefined for an empty day
+  isClickable: boolean; // lets the cell be selected by clicking it
+  reveal: boolean; // whether intro animations are enabled at all
+  store: HeatmapStore; // selection + intro state
 };
 
 /**
- * Renders a single day. The root passes one of these per cell, so it reads the
- * shared context for the ramp, selection, and intro sweep rather than props.
+ * Renders a single day. Memoized on primitive props, because Recharts re-runs
+ * the shape function on every hover; the selection comes from the store, so
+ * only the cells whose status flips re-render on a click.
  */
-function HeatmapCell({ cx, cy, payload }: HeatmapCellProps) {
-  const { cell, grid, colorsCount, selectedDate, toggleDate, revealEnabled } = useHeatmapChart();
-  const { cellSize } = useHeatmapLayout();
+const HeatmapCell = memo(function HeatmapCell({
+  cx,
+  cy,
+  size,
+  radius,
+  date,
+  value,
+  column,
+  fill,
+  isClickable,
+  reveal,
+  store,
+}: HeatmapCellProps) {
+  const status = useCellStatus(store, date);
+  // Read once at mount: the first real cells play the intro, later remounts don't.
+  const [playIntro] = useState(() => reveal && store.isRevealPending());
+  useEffect(() => {
+    store.settleReveal();
+  }, [store]);
 
-  if (cx === undefined || cy === undefined || !payload) return null;
+  if (cx === undefined || cy === undefined) return null;
 
-  const gap = Math.min(cell.gap, cellSize - 1);
-  const size = Math.max(1, cellSize - gap);
-  const radius = Math.min(cell.radius, size / 2);
-
-  const selected = selectedDate === payload.date;
-  const dimmed = selectedDate !== null && !selected;
-  const fill =
-    payload.level === 0
-      ? undefined
-      : `var(--color-${cell.dataKey}-${rampIndex(payload.level, grid.levels, colorsCount)})`;
+  const selected = status === "selected";
 
   return (
     <motion.rect
@@ -755,37 +916,36 @@ function HeatmapCell({ cx, cy, payload }: HeatmapCellProps) {
       className={cn(
         "fill-foreground/[0.08] transition-[fill-opacity,stroke] duration-200",
         selected ? "stroke-foreground/90" : "hover:stroke-foreground/60 stroke-transparent",
-        cell.isClickable && "cursor-pointer",
+        isClickable && "cursor-pointer",
       )}
       style={{ fill, originX: 0.5, originY: 0.5 }}
-      fillOpacity={dimmed ? CELL_DIM_OPACITY : 1}
+      fillOpacity={status === "dimmed" ? CELL_DIM_OPACITY : 1}
       strokeWidth={selected ? SELECTED_RING_WIDTH : HOVER_RING_WIDTH}
-      initial={revealEnabled ? { opacity: 0, scale: INTRO_CELL_SCALE_FROM } : false}
+      initial={playIntro ? { opacity: 0, scale: INTRO_CELL_SCALE_FROM } : false}
       animate={{ opacity: 1, scale: 1 }}
       transition={{
-        delay: payload.column * INTRO_COLUMN_STAGGER,
+        delay: column * INTRO_COLUMN_STAGGER,
         duration: INTRO_CELL_GROW,
         ease: "easeOut",
       }}
-      onClick={cell.isClickable ? () => toggleDate(payload.date) : undefined}
+      onClick={isClickable ? () => store.toggle(date, value) : undefined}
     />
   );
-}
+});
 
-type LoadingCellProps = HeatmapCellProps & {
+type LoadingCellProps = CellGeometry & {
   gradientId: string; // the shimmer gradient shared by every skeleton cell
 };
 
 /** A skeleton cell — the same footprint as a real one, painted by the shared shimmer. */
-function LoadingCell({ cx, cy, payload, gradientId }: LoadingCellProps) {
-  const { cell } = useHeatmapChart();
-  const { cellSize } = useHeatmapLayout();
-
-  if (cx === undefined || cy === undefined || !payload) return null;
-
-  const gap = Math.min(cell.gap, cellSize - 1);
-  const size = Math.max(1, cellSize - gap);
-  const radius = Math.min(cell.radius, size / 2);
+const LoadingCell = memo(function LoadingCell({
+  cx,
+  cy,
+  size,
+  radius,
+  gradientId,
+}: LoadingCellProps) {
+  if (cx === undefined || cy === undefined) return null;
 
   return (
     <rect
@@ -799,7 +959,7 @@ function LoadingCell({ cx, cy, payload, gradientId }: LoadingCellProps) {
       pointerEvents="none"
     />
   );
-}
+});
 
 type ShimmerGradientProps = {
   id: string; // gradient id referenced by the skeleton cells
