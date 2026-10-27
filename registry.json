@@ -3845,8 +3845,8 @@
       ]
     },
     {
-      "name": "deploys-heatmap-chart",
-      "description": "Six months of deploy frequency on a Monday-first calendar with a three-stat header",
+      "name": "sales-heatmap-chart",
+      "description": "A year of shop orders on a Monday-first calendar: weekend peaks, a summer lull, and the holiday rush",
       "dependencies": [
         "recharts",
         "motion"
@@ -3857,15 +3857,15 @@
       "type": "registry:block",
       "files": [
         {
-          "path": "src/registry/blocks/recharts/b-deploys-heatmap-chart.tsx",
+          "path": "src/registry/blocks/recharts/b-sales-heatmap-chart.tsx",
           "type": "registry:block",
-          "target": "components/evilcharts/blocks/deploys-heatmap-chart.tsx"
+          "target": "components/evilcharts/blocks/sales-heatmap-chart.tsx"
         }
       ]
     },
     {
-      "name": "incidents-heatmap-chart",
-      "description": "Quarter of on-call alerts with severity thresholds and a selected-day detail header",
+      "name": "workouts-heatmap-chart",
+      "description": "Clickable workout tracker with pinned duration levels, a day-detail header, and streak stats",
       "dependencies": [
         "recharts",
         "motion"
@@ -3876,9 +3876,9 @@
       "type": "registry:block",
       "files": [
         {
-          "path": "src/registry/blocks/recharts/b-incidents-heatmap-chart.tsx",
+          "path": "src/registry/blocks/recharts/b-workouts-heatmap-chart.tsx",
           "type": "registry:block",
-          "target": "components/evilcharts/blocks/incidents-heatmap-chart.tsx"
+          "target": "components/evilcharts/blocks/workouts-heatmap-chart.tsx"
         }
       ]
     },
@@ -4244,8 +4244,8 @@
       ]
     },
     {
-      "name": "deploys-echarts-heatmap-chart",
-      "description": "Six months of deploy frequency on a Monday-first calendar with a three-stat header",
+      "name": "sales-echarts-heatmap-chart",
+      "description": "A year of shop orders on a Monday-first calendar: weekend peaks, a summer lull, and the holiday rush",
       "dependencies": [
         "echarts",
         "motion"
@@ -4256,15 +4256,15 @@
       "type": "registry:block",
       "files": [
         {
-          "path": "src/registry/blocks/echarts/b-deploys-echarts-heatmap-chart.tsx",
+          "path": "src/registry/blocks/echarts/b-sales-echarts-heatmap-chart.tsx",
           "type": "registry:block",
-          "target": "components/evilcharts/blocks/deploys-echarts-heatmap-chart.tsx"
+          "target": "components/evilcharts/blocks/sales-echarts-heatmap-chart.tsx"
         }
       ]
     },
     {
-      "name": "incidents-echarts-heatmap-chart",
-      "description": "A quarter of on-call alerts with fixed severity thresholds and a clickable day detail header",
+      "name": "workouts-echarts-heatmap-chart",
+      "description": "Clickable workout tracker with pinned duration levels, a day-detail header, and streak stats",
       "dependencies": [
         "echarts",
         "motion"
@@ -4275,9 +4275,9 @@
       "type": "registry:block",
       "files": [
         {
-          "path": "src/registry/blocks/echarts/b-incidents-echarts-heatmap-chart.tsx",
+          "path": "src/registry/blocks/echarts/b-workouts-echarts-heatmap-chart.tsx",
           "type": "registry:block",
-          "target": "components/evilcharts/blocks/incidents-echarts-heatmap-chart.tsx"
+          "target": "components/evilcharts/blocks/workouts-echarts-heatmap-chart.tsx"
         }
       ]
     }

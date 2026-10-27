@@ -5029,36 +5029,36 @@ export const Index: Record<string, any> = {
     categories: undefined,
     meta: undefined,
   },
-  "deploys-heatmap-chart": {
-    name: "deploys-heatmap-chart",
-    description: "Six months of deploy frequency on a Monday-first calendar with a three-stat header",
+  "sales-heatmap-chart": {
+    name: "sales-heatmap-chart",
+    description: "A year of shop orders on a Monday-first calendar: weekend peaks, a summer lull, and the holiday rush",
     type: "registry:block",
     registryDependencies: ["@evilcharts/recharts-heatmap-chart"],
     files: [{
-      path: "@/registry/blocks/recharts/b-deploys-heatmap-chart.tsx",
+      path: "@/registry/blocks/recharts/b-sales-heatmap-chart.tsx",
       type: "registry:block",
-      target: "components/evilcharts/blocks/deploys-heatmap-chart.tsx"
+      target: "components/evilcharts/blocks/sales-heatmap-chart.tsx"
     }],
     component: React.lazy(async () => {
-      const mod = await import("@/registry/blocks/recharts/b-deploys-heatmap-chart.tsx")
+      const mod = await import("@/registry/blocks/recharts/b-sales-heatmap-chart.tsx")
       const exportName = Object.keys(mod).find(key => typeof mod[key] === 'function' || typeof mod[key] === 'object') || item.name
       return { default: mod.default || mod[exportName] }
     }),
     categories: undefined,
     meta: undefined,
   },
-  "incidents-heatmap-chart": {
-    name: "incidents-heatmap-chart",
-    description: "Quarter of on-call alerts with severity thresholds and a selected-day detail header",
+  "workouts-heatmap-chart": {
+    name: "workouts-heatmap-chart",
+    description: "Clickable workout tracker with pinned duration levels, a day-detail header, and streak stats",
     type: "registry:block",
     registryDependencies: ["@evilcharts/recharts-heatmap-chart"],
     files: [{
-      path: "@/registry/blocks/recharts/b-incidents-heatmap-chart.tsx",
+      path: "@/registry/blocks/recharts/b-workouts-heatmap-chart.tsx",
       type: "registry:block",
-      target: "components/evilcharts/blocks/incidents-heatmap-chart.tsx"
+      target: "components/evilcharts/blocks/workouts-heatmap-chart.tsx"
     }],
     component: React.lazy(async () => {
-      const mod = await import("@/registry/blocks/recharts/b-incidents-heatmap-chart.tsx")
+      const mod = await import("@/registry/blocks/recharts/b-workouts-heatmap-chart.tsx")
       const exportName = Object.keys(mod).find(key => typeof mod[key] === 'function' || typeof mod[key] === 'object') || item.name
       return { default: mod.default || mod[exportName] }
     }),
@@ -5407,36 +5407,36 @@ export const Index: Record<string, any> = {
     categories: undefined,
     meta: undefined,
   },
-  "deploys-echarts-heatmap-chart": {
-    name: "deploys-echarts-heatmap-chart",
-    description: "Six months of deploy frequency on a Monday-first calendar with a three-stat header",
+  "sales-echarts-heatmap-chart": {
+    name: "sales-echarts-heatmap-chart",
+    description: "A year of shop orders on a Monday-first calendar: weekend peaks, a summer lull, and the holiday rush",
     type: "registry:block",
     registryDependencies: ["@evilcharts/echarts-heatmap-chart"],
     files: [{
-      path: "@/registry/blocks/echarts/b-deploys-echarts-heatmap-chart.tsx",
+      path: "@/registry/blocks/echarts/b-sales-echarts-heatmap-chart.tsx",
       type: "registry:block",
-      target: "components/evilcharts/blocks/deploys-echarts-heatmap-chart.tsx"
+      target: "components/evilcharts/blocks/sales-echarts-heatmap-chart.tsx"
     }],
     component: React.lazy(async () => {
-      const mod = await import("@/registry/blocks/echarts/b-deploys-echarts-heatmap-chart.tsx")
+      const mod = await import("@/registry/blocks/echarts/b-sales-echarts-heatmap-chart.tsx")
       const exportName = Object.keys(mod).find(key => typeof mod[key] === 'function' || typeof mod[key] === 'object') || item.name
       return { default: mod.default || mod[exportName] }
     }),
     categories: undefined,
     meta: undefined,
   },
-  "incidents-echarts-heatmap-chart": {
-    name: "incidents-echarts-heatmap-chart",
-    description: "A quarter of on-call alerts with fixed severity thresholds and a clickable day detail header",
+  "workouts-echarts-heatmap-chart": {
+    name: "workouts-echarts-heatmap-chart",
+    description: "Clickable workout tracker with pinned duration levels, a day-detail header, and streak stats",
     type: "registry:block",
     registryDependencies: ["@evilcharts/echarts-heatmap-chart"],
     files: [{
-      path: "@/registry/blocks/echarts/b-incidents-echarts-heatmap-chart.tsx",
+      path: "@/registry/blocks/echarts/b-workouts-echarts-heatmap-chart.tsx",
       type: "registry:block",
-      target: "components/evilcharts/blocks/incidents-echarts-heatmap-chart.tsx"
+      target: "components/evilcharts/blocks/workouts-echarts-heatmap-chart.tsx"
     }],
     component: React.lazy(async () => {
-      const mod = await import("@/registry/blocks/echarts/b-incidents-echarts-heatmap-chart.tsx")
+      const mod = await import("@/registry/blocks/echarts/b-workouts-echarts-heatmap-chart.tsx")
       const exportName = Object.keys(mod).find(key => typeof mod[key] === 'function' || typeof mod[key] === 'object') || item.name
       return { default: mod.default || mod[exportName] }
     }),

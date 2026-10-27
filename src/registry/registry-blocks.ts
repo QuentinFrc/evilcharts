@@ -74,32 +74,32 @@ export const blocks: Registry["items"] = [
     ],
   },
   {
-    name: "deploys-heatmap-chart",
+    name: "sales-heatmap-chart",
     description:
-      "Six months of deploy frequency on a Monday-first calendar with a three-stat header",
+      "A year of shop orders on a Monday-first calendar: weekend peaks, a summer lull, and the holiday rush",
     dependencies: ["recharts", "motion"],
     registryDependencies: ["@evilcharts/recharts-heatmap-chart"],
     type: "registry:block",
     files: [
       {
-        path: "blocks/recharts/b-deploys-heatmap-chart.tsx",
+        path: "blocks/recharts/b-sales-heatmap-chart.tsx",
         type: "registry:block",
-        target: TARGET_BASE_PATH + "/deploys-heatmap-chart.tsx",
+        target: TARGET_BASE_PATH + "/sales-heatmap-chart.tsx",
       },
     ],
   },
   {
-    name: "incidents-heatmap-chart",
+    name: "workouts-heatmap-chart",
     description:
-      "Quarter of on-call alerts with severity thresholds and a selected-day detail header",
+      "Clickable workout tracker with pinned duration levels, a day-detail header, and streak stats",
     dependencies: ["recharts", "motion"],
     registryDependencies: ["@evilcharts/recharts-heatmap-chart"],
     type: "registry:block",
     files: [
       {
-        path: "blocks/recharts/b-incidents-heatmap-chart.tsx",
+        path: "blocks/recharts/b-workouts-heatmap-chart.tsx",
         type: "registry:block",
-        target: TARGET_BASE_PATH + "/incidents-heatmap-chart.tsx",
+        target: TARGET_BASE_PATH + "/workouts-heatmap-chart.tsx",
       },
     ],
   },
@@ -372,32 +372,32 @@ export const blocks: Registry["items"] = [
     ],
   },
   {
-    name: "deploys-echarts-heatmap-chart",
+    name: "sales-echarts-heatmap-chart",
     description:
-      "Six months of deploy frequency on a Monday-first calendar with a three-stat header",
+      "A year of shop orders on a Monday-first calendar: weekend peaks, a summer lull, and the holiday rush",
     dependencies: ["echarts", "motion"],
     registryDependencies: ["@evilcharts/echarts-heatmap-chart"],
     type: "registry:block",
     files: [
       {
-        path: "blocks/echarts/b-deploys-echarts-heatmap-chart.tsx",
+        path: "blocks/echarts/b-sales-echarts-heatmap-chart.tsx",
         type: "registry:block",
-        target: TARGET_BASE_PATH + "/deploys-echarts-heatmap-chart.tsx",
+        target: TARGET_BASE_PATH + "/sales-echarts-heatmap-chart.tsx",
       },
     ],
   },
   {
-    name: "incidents-echarts-heatmap-chart",
+    name: "workouts-echarts-heatmap-chart",
     description:
-      "A quarter of on-call alerts with fixed severity thresholds and a clickable day detail header",
+      "Clickable workout tracker with pinned duration levels, a day-detail header, and streak stats",
     dependencies: ["echarts", "motion"],
     registryDependencies: ["@evilcharts/echarts-heatmap-chart"],
     type: "registry:block",
     files: [
       {
-        path: "blocks/echarts/b-incidents-echarts-heatmap-chart.tsx",
+        path: "blocks/echarts/b-workouts-echarts-heatmap-chart.tsx",
         type: "registry:block",
-        target: TARGET_BASE_PATH + "/incidents-echarts-heatmap-chart.tsx",
+        target: TARGET_BASE_PATH + "/workouts-echarts-heatmap-chart.tsx",
       },
     ],
   },
