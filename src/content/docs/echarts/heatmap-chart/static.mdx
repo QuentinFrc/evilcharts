@@ -96,7 +96,7 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-<EChartsHeatmapChart data={data} config={chartConfig}>
+<EChartsHeatmapChart className="h-48" data={data} config={chartConfig}>
   <EChartsHeatmapChart.Cell dataKey="contributions" />
   <EChartsHeatmapChart.MonthLabel />
   <EChartsHeatmapChart.DayLabel />
@@ -194,8 +194,9 @@ Examples of the heatmap in different configurations. Customize the root `range`,
 <ComponentPreview className="mb-0" title="thresholds={[3, 10]}" name="ex-thresholds-echarts-heatmap-chart"  />
 <Alert>
   <AlertContent>
-    `thresholds` pins the level boundaries: values below `3` are the first level, `3`–`9` the
-    second, `10` and up the third. With three cuts the config needs three colors — one per level.
+    `thresholds` pins the level boundaries. Zero stays empty; positive values below `3` are the
+    first level, `3` up to `10` the second, `10` and up the third. Two cuts make three levels, so
+    the config needs three colors — one per level.
   </AlertContent>
 </Alert>
 

@@ -540,11 +540,25 @@ function useCellStatus(store: HeatmapStore, date: string): CellStatus {
 
 /**
  * Whether the cell is the grid's single Tab stop: the day that last had focus,
- * else the selected day, else the most recent day in the range.
+ * else the selected day, else the most recent day in the range. A stored day
+ * with no cell (outside the range, or gone after a data change) is skipped, so
+ * some cell always keeps the stop and the grid stays reachable by keyboard.
  */
-function useIsTabStop(store: HeatmapStore, date: string, isLast: boolean): boolean {
+function useIsTabStop(
+  store: HeatmapStore,
+  date: string,
+  isLast: boolean,
+  hasDate: (date: string) => boolean,
+): boolean {
   const getIsTabStop = () => {
-    const stop = store.getTabStop() ?? store.getSelected();
+    const tabStop = store.getTabStop();
+    const selected = store.getSelected();
+    const stop =
+      tabStop !== null && hasDate(tabStop)
+        ? tabStop
+        : selected !== null && hasDate(selected)
+          ? selected
+          : null;
     return stop === null ? isLast : stop === date;
   };
   return useSyncExternalStore(store.subscribe, getIsTabStop, getIsTabStop);
@@ -772,6 +786,8 @@ const HeatmapPlot = memo(function HeatmapPlot({
     [cells, range.start],
   );
   const lastDate = cells.at(-1)?.date;
+  const dates = useMemo(() => new Set(cells.map((day) => day.date)), [cells]);
+  const hasDate = useCallback((date: string) => dates.has(date), [dates]);
 
   const renderCell = useCallback(
     ({ cx, cy, payload }: ScatterShapeProps) => {
@@ -796,6 +812,7 @@ const HeatmapPlot = memo(function HeatmapPlot({
           }
           isClickable={isClickable}
           isLast={day.date === lastDate}
+          hasDate={hasDate}
           seriesLabel={seriesLabel}
           navigate={navigate}
           reveal={revealEnabled}
@@ -813,6 +830,7 @@ const HeatmapPlot = memo(function HeatmapPlot({
       colorsCount,
       isClickable,
       lastDate,
+      hasDate,
       seriesLabel,
       navigate,
       revealEnabled,
@@ -938,6 +956,7 @@ type HeatmapCellProps = CellGeometry & {
   fill: string | undefined; // ramp color, or undefined for an empty day
   isClickable: boolean; // lets the cell be selected by clicking it or from the keyboard
   isLast: boolean; // the most recent day — the default Tab stop when nothing is selected
+  hasDate: (date: string) => boolean; // whether a day has a cell in the current grid
   seriesLabel: string; // series name read out with the value, e.g. "Contributions"
   navigate: (date: string, key: string) => string | undefined; // day a key press moves focus to
   reveal: boolean; // whether intro animations are enabled at all
@@ -964,13 +983,14 @@ const HeatmapCell = memo(function HeatmapCell({
   fill,
   isClickable,
   isLast,
+  hasDate,
   seriesLabel,
   navigate,
   reveal,
   store,
 }: HeatmapCellProps) {
   const status = useCellStatus(store, date);
-  const isTabStop = useIsTabStop(store, date, isLast);
+  const isTabStop = useIsTabStop(store, date, isLast, hasDate);
   // Read once at mount: the first real cells play the intro, later remounts don't.
   const [playIntro] = useState(() => reveal && store.isRevealPending());
   useEffect(() => {
