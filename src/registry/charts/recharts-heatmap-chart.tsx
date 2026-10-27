@@ -14,6 +14,7 @@ import {
   useSyncExternalStore,
   type ComponentProps,
   type FC,
+  type KeyboardEvent,
   type ReactNode,
 } from "react";
 import {
@@ -481,13 +482,19 @@ type HeatmapStore = {
   isRevealPending: () => boolean; // true until the first real cells mount — later remounts skip the intro
   armReveal: () => void; // the next cells to mount play the intro again (after a loading state)
   settleReveal: () => void; // called once cells have mounted
+  getTabStop: () => string | null; // day that last took keyboard focus, or null for the default stop
+  setTabStop: (date: string | null) => void; // moves the grid's single Tab stop (roving tabindex)
 };
 
 function createHeatmapStore(initialSelected: string | null): HeatmapStore {
   let selected = initialSelected;
+  let tabStop: string | null = null;
   let onSelectionChange: EvilHeatmapChartProps["onSelectionChange"];
   let revealPending = true;
   const listeners = new Set<() => void>();
+  const notify = () => {
+    for (const listener of listeners) listener();
+  };
 
   return {
     getSelected: () => selected,
@@ -499,8 +506,14 @@ function createHeatmapStore(initialSelected: string | null): HeatmapStore {
     },
     toggle: (date, value) => {
       selected = selected === date ? null : date;
-      for (const listener of listeners) listener();
+      notify();
       onSelectionChange?.(selected === null ? null : { date: selected, value });
+    },
+    getTabStop: () => tabStop,
+    setTabStop: (date) => {
+      if (tabStop === date) return;
+      tabStop = date;
+      notify();
     },
     setOnSelectionChange: (callback) => {
       onSelectionChange = callback;
@@ -523,6 +536,38 @@ function useCellStatus(store: HeatmapStore, date: string): CellStatus {
     return selected === date ? "selected" : "dimmed";
   };
   return useSyncExternalStore(store.subscribe, getStatus, getStatus);
+}
+
+/**
+ * Whether the cell is the grid's single Tab stop: the day that last had focus,
+ * else the selected day, else the most recent day in the range.
+ */
+function useIsTabStop(store: HeatmapStore, date: string, isLast: boolean): boolean {
+  const getIsTabStop = () => {
+    const stop = store.getTabStop() ?? store.getSelected();
+    return stop === null ? isLast : stop === date;
+  };
+  return useSyncExternalStore(store.subscribe, getIsTabStop, getIsTabStop);
+}
+
+/** Day index a key press moves to: rows are weekdays, columns are weeks. */
+function keyTarget(key: string, index: number, count: number): number | null {
+  switch (key) {
+    case "ArrowUp":
+      return index - 1;
+    case "ArrowDown":
+      return index + 1;
+    case "ArrowLeft":
+      return index - DAYS_PER_WEEK;
+    case "ArrowRight":
+      return index + DAYS_PER_WEEK;
+    case "Home":
+      return 0;
+    case "End":
+      return count - 1;
+    default:
+      return null;
+  }
 }
 
 /**
@@ -705,14 +750,28 @@ const HeatmapPlot = memo(function HeatmapPlot({
   shimmerId,
   animateShimmer,
 }: HeatmapPlotProps) {
-  const { cell, grid, colorsCount, isLoading, revealEnabled, store } = useHeatmapChart();
+  const { config, cell, grid, colorsCount, isLoading, revealEnabled, store } = useHeatmapChart();
   const layout = useHeatmapLayout();
 
   const gap = Math.min(cell.gap, layout.cellSize - 1);
   const size = Math.max(1, layout.cellSize - gap);
   const radius = Math.min(cell.radius, size / 2);
   const { dataKey, isClickable } = cell;
-  const { levels } = grid;
+  const { cells, levels, range } = grid;
+  const configLabel = config[dataKey]?.label;
+  const seriesLabel = typeof configLabel === "string" ? configLabel : dataKey;
+
+  // Cells are consecutive days, so a day's index is its offset from the range start.
+  const navigate = useCallback(
+    (date: string, key: string) => {
+      const index = Math.round((parseIsoDate(date) - range.start) / DAY_MS);
+      const target = keyTarget(key, index, cells.length);
+      if (target === null) return undefined;
+      return cells[Math.max(0, Math.min(cells.length - 1, target))].date;
+    },
+    [cells, range.start],
+  );
+  const lastDate = cells.at(-1)?.date;
 
   const renderCell = useCallback(
     ({ cx, cy, payload }: ScatterShapeProps) => {
@@ -736,6 +795,9 @@ const HeatmapPlot = memo(function HeatmapPlot({
               : `var(--color-${dataKey}-${rampIndex(day.level, levels, colorsCount)})`
           }
           isClickable={isClickable}
+          isLast={day.date === lastDate}
+          seriesLabel={seriesLabel}
+          navigate={navigate}
           reveal={revealEnabled}
           store={store}
         />
@@ -750,6 +812,9 @@ const HeatmapPlot = memo(function HeatmapPlot({
       levels,
       colorsCount,
       isClickable,
+      lastDate,
+      seriesLabel,
+      navigate,
       revealEnabled,
       store,
     ],
@@ -871,7 +936,10 @@ type HeatmapCellProps = CellGeometry & {
   value: number; // that day's value
   column: number; // week column, drives the intro stagger
   fill: string | undefined; // ramp color, or undefined for an empty day
-  isClickable: boolean; // lets the cell be selected by clicking it
+  isClickable: boolean; // lets the cell be selected by clicking it or from the keyboard
+  isLast: boolean; // the most recent day — the default Tab stop when nothing is selected
+  seriesLabel: string; // series name read out with the value, e.g. "Contributions"
+  navigate: (date: string, key: string) => string | undefined; // day a key press moves focus to
   reveal: boolean; // whether intro animations are enabled at all
   store: HeatmapStore; // selection + intro state
 };
@@ -880,6 +948,10 @@ type HeatmapCellProps = CellGeometry & {
  * Renders a single day. Memoized on primitive props, because Recharts re-runs
  * the shape function on every hover; the selection comes from the store, so
  * only the cells whose status flips re-render on a click.
+ *
+ * Clickable cells are toggle buttons behind a single Tab stop: arrow keys move
+ * by day (up/down) and by week (left/right), Home/End jump to the range ends,
+ * and Enter or Space toggles the focused day.
  */
 const HeatmapCell = memo(function HeatmapCell({
   cx,
@@ -891,10 +963,14 @@ const HeatmapCell = memo(function HeatmapCell({
   column,
   fill,
   isClickable,
+  isLast,
+  seriesLabel,
+  navigate,
   reveal,
   store,
 }: HeatmapCellProps) {
   const status = useCellStatus(store, date);
+  const isTabStop = useIsTabStop(store, date, isLast);
   // Read once at mount: the first real cells play the intro, later remounts don't.
   const [playIntro] = useState(() => reveal && store.isRevealPending());
   useEffect(() => {
@@ -904,6 +980,22 @@ const HeatmapCell = memo(function HeatmapCell({
   if (cx === undefined || cy === undefined) return null;
 
   const selected = status === "selected";
+
+  const handleKeyDown = (event: KeyboardEvent<SVGRectElement>) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      store.toggle(date, value);
+      return;
+    }
+    const target = navigate(date, event.key);
+    if (target === undefined) return;
+    // Keep the key from scrolling the page or reaching Recharts' own keyboard layer.
+    event.preventDefault();
+    event.stopPropagation();
+    event.currentTarget.ownerSVGElement
+      ?.querySelector<SVGRectElement>(`[data-date="${target}"]`)
+      ?.focus();
+  };
 
   return (
     <motion.rect
@@ -916,7 +1008,7 @@ const HeatmapCell = memo(function HeatmapCell({
       className={cn(
         "fill-foreground/[0.08] transition-[fill-opacity,stroke] duration-200",
         selected ? "stroke-foreground/90" : "hover:stroke-foreground/60 stroke-transparent",
-        isClickable && "cursor-pointer",
+        isClickable && "focus-visible:stroke-foreground cursor-pointer outline-none",
       )}
       style={{ fill, originX: 0.5, originY: 0.5 }}
       fillOpacity={status === "dimmed" ? CELL_DIM_OPACITY : 1}
@@ -929,6 +1021,15 @@ const HeatmapCell = memo(function HeatmapCell({
         ease: "easeOut",
       }}
       onClick={isClickable ? () => store.toggle(date, value) : undefined}
+      {...(isClickable && {
+        "data-date": date,
+        role: "button",
+        "aria-pressed": selected,
+        "aria-label": `${defaultDateFormatter(date)}: ${defaultValueFormatter(value)} ${seriesLabel}`,
+        tabIndex: isTabStop ? 0 : -1,
+        onKeyDown: handleKeyDown,
+        onFocus: () => store.setTabStop(date),
+      })}
     />
   );
 });
