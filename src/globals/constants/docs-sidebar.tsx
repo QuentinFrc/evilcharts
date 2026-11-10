@@ -7,6 +7,7 @@ import {
   HouseIcon,
   ShapesIcon,
   SquareAddonIcon,
+  ThresholdIcon,
   TooltipIcon,
 } from "@/assets/icons";
 import type { Provider } from "@/globals/constants/providers";
@@ -70,6 +71,11 @@ export function getChartComponentOptions(provider: Provider): SidebarOption[] {
       name: "Brush",
       url: `/docs/${provider}/ui/brush`,
       icon: <BrushIcon />,
+    },
+    {
+      name: "Threshold",
+      url: `/docs/${provider}/ui/threshold`,
+      icon: <ThresholdIcon />,
     },
   ];
 }

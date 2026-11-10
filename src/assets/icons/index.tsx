@@ -1421,3 +1421,37 @@ export function EChartsIcon({
     </svg>
   );
 }
+
+export function ThresholdIcon({
+  fill = "currentColor",
+  secondaryfill,
+  width = "1em",
+  height = "1em",
+  ...props
+}: IconProps) {
+  secondaryfill = secondaryfill || fill;
+
+  return (
+    <svg
+      height={height}
+      width={width}
+      viewBox="0 0 18 18"
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <g fill={fill}>
+        <rect
+          height="5.5"
+          width="16"
+          fill={secondaryfill}
+          fillOpacity="0.4"
+          rx="1.25"
+          x="1"
+          y="2.5"
+        />
+        <rect height="1.75" width="16" fill={fill} rx="0.875" x="1" y="8.5" />
+        <circle cx="6" cy="5.25" r="1.75" fill={fill} />
+      </g>
+    </svg>
+  );
+}
