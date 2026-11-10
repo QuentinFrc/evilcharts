@@ -183,6 +183,14 @@ Examples with different `variants` — change the `curveType` and `strokeVariant
 <ComponentPreview title="glowing - solid colors" name="ex-glowing-mobile-line-chart"  />
 
 
+### Threshold
+
+A norm the series is read against, rather than another measure: a faint band over the
+region past the threshold, the line where conformity ends, and the runs that crossed it
+repainted. Full props and behavior on the [Threshold](/docs/recharts/ui/threshold) page.
+
+<ComponentPreview title='value={300} side="above"' name="ex-threshold-line-chart" />
+
 ## API Reference
 
 Props below are grouped by the component they belong to.
@@ -302,6 +310,11 @@ The background grid lines. Defaults to horizontal-only dashed lines and forwards
     Every Recharts CartesianGrid prop is forwarded as-is. See the <Link href="https://recharts.github.io/en-US/api/CartesianGrid/" _blank>Recharts CartesianGrid documentation</Link>.
   </ApiRow>
 </ApiTable>
+
+<ApiHeading>Threshold</ApiHeading>
+
+The norm the series is read against. Include it to draw the threshold; omit it and nothing
+is drawn. Its props are documented once, on the [Threshold](/docs/recharts/ui/threshold) page.
 
 <ApiHeading>Tooltip</ApiHeading>
 

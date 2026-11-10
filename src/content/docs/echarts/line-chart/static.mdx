@@ -213,6 +213,14 @@ Examples with different settings. Change `strokeVariant` on a `<Line>` or `curve
 <ComponentPreview className="mb-0" title="glowing - gradient colors" name="ex-glowing-desktop-echarts-line-chart"  />
 <ComponentPreview title="glowing - solid colors" name="ex-glowing-mobile-echarts-line-chart"  />
 
+### Threshold
+
+A norm the series is read against, rather than another measure: a faint band over the
+region past the threshold, the line where conformity ends, and the runs that crossed it
+repainted. Full props and behavior on the [Threshold](/docs/echarts/ui/threshold) page.
+
+<ComponentPreview title='value={300} side="above"' name="ex-threshold-echarts-line-chart" />
+
 ## API Reference
 
 The chart is composed of several parts; the props below are grouped by part. Regardless of renderer, each part is declarative config the root compiles, but the API mirrors the Recharts twin one-to-one.
@@ -341,6 +349,11 @@ The category and value axes. Include `<XAxis />` for x-axis labels and `<YAxis /
 <ApiHeading>Grid</ApiHeading>
 
 The background grid lines. Include it to render the dashed horizontal split lines; omit it and they don't draw. Takes no props.
+
+<ApiHeading>Threshold</ApiHeading>
+
+The norm the series is read against. Include it to draw the threshold; omit it and nothing
+is drawn. Its props are documented once, on the [Threshold](/docs/echarts/ui/threshold) page.
 
 <ApiHeading>Tooltip</ApiHeading>
 

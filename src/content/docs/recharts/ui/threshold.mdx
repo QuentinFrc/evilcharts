@@ -1,0 +1,65 @@
+---
+title: Threshold
+description: A norm the series is read against — a band, a line, and the runs that crossed it.
+image: /og/og-image.png
+---
+
+## Usage
+
+Compose a `<Threshold />` inside an area or line chart to draw a norm the series is read against,
+rather than another measure: a faint band over the region past the threshold, the line where
+conformity ends, and — unless `highlightBreaches` is false — the runs that crossed it repainted.
+
+`dataKey` names the config entry that supplies the color, so the part never hard-codes a hue.
+
+```tsx
+import { EvilAreaChart } from "@/components/evilcharts/charts/recharts-area-chart";
+
+<EvilAreaChart data={data} config={chartConfig} xDataKey="hour">
+  <EvilAreaChart.Threshold value={300} dataKey="breach" label="SLO 300ms" />
+  <EvilAreaChart.Area dataKey="p95" variant="gradient" />
+</EvilAreaChart>;
+```
+
+The same part is composed on the line chart, from the same shared module — so one chart's
+`<Threshold />` is the very same component as another's.
+
+<ComponentPreview title="Area chart" name="ex-threshold-area-chart" />
+
+<ComponentPreview title="Line chart" name="ex-threshold-line-chart" />
+
+## API Reference
+
+<ApiTable>
+  <ApiRow name="value" type="number" default="—">
+    The threshold, in y-axis units. Required.
+  </ApiRow>
+  <ApiRow name="dataKey" type="string">
+    Config key whose color paints the band, the line and the breaches. Without one the threshold
+    paints in the foreground color. On the Recharts roots a config key must also be a key of the row
+    type, so a color-only entry is declared on that type.
+  </ApiRow>
+  <ApiRow name="side" type='"above" | "below"' default='"above"'>
+    Which side of the threshold counts as a breach — a ceiling, or a floor.
+  </ApiRow>
+  <ApiRow name="label" type="string">
+    Text set on the threshold line.
+  </ApiRow>
+  <ApiRow name="highlightBreaches" type="boolean" default="true">
+    Repaints the series runs that crossed, with a dot on each point past the threshold. The band and
+    the line still read without it.
+  </ApiRow>
+</ApiTable>
+
+## Notes
+
+A threshold outside the data range pulls the axis out to reach it — a line you cannot see is a line
+you cannot judge against.
+
+A breach sits right beside the series it belongs to, so the two colors have to stay apart. The usual
+green-against-red pairing does not: under deuteranopia it collapses to roughly 6 ΔE, and this repo's
+own dark `--chart-2` and `--destructive` sit at an identical lightness. So a breach also carries
+dots — color is never its only channel, and the examples pair blue with red instead of green.
+
+On a stacked area chart the breach overlay is skipped: there a series' own value is not its plotted
+height, so a per-series breach would point at the wrong place. The band and the line still read.

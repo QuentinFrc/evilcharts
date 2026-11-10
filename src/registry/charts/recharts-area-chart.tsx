@@ -31,6 +31,14 @@ import {
   YAxis as RechartsYAxis,
 } from "recharts";
 import {
+  NO_THRESHOLD,
+  Threshold,
+  thresholdSlotFrom,
+  useThresholdParts,
+  type ThresholdProps,
+  type ThresholdSide,
+} from "@/registry/ui/recharts-threshold";
+import {
   ChartTooltip,
   ChartTooltipContent,
   type TooltipRoundness,
@@ -87,6 +95,7 @@ type RevealAnimationType = Exclude<AreaAnimationType, "none">;
  * <Area />, <XAxis />, <Legend />, and friends can read it without prop drilling.
  * Sub-components are composed freely — the provider is the single source of truth.
  */
+
 type AreaChartContextValue = {
   config: ChartConfig; // colors + labels for every series
   curveType: CurveType; // default curve interpolation each <Area /> inherits
@@ -183,6 +192,19 @@ export function EvilAreaChart<
     const parts = Children.toArray(children);
     const brushEl = parts.find((child) => isValidElement(child) && child.type === Brush);
     const bp = (isValidElement(brushEl) ? brushEl.props : {}) as BrushProps;
+    // <Threshold> is config-only too, for a Recharts-specific reason: the ROOT
+    // injects its primitives, so no part ever has to return several elements.
+    // Recharts identifies its children by type and does not reliably look
+    // inside a fragment, which is why every other part returns exactly one.
+    const thresholdEl = parts.find((child) => isValidElement(child) && child.type === Threshold);
+    const tp = (isValidElement(thresholdEl) ? thresholdEl.props : {}) as ThresholdProps;
+    // The composed series, so the breach overlay knows what to shadow.
+    const areaKeys: string[] = [];
+    for (const child of parts) {
+      if (isValidElement(child) && child.type === Area) {
+        areaKeys.push((child.props as AreaProps).dataKey);
+      }
+    }
     return {
       slot: {
         present: isValidElement(brushEl),
@@ -190,7 +212,11 @@ export function EvilAreaChart<
         formatLabel: bp.formatLabel,
         onChange: bp.onChange,
       },
-      chartChildren: parts.filter((child) => !(isValidElement(child) && child.type === Brush)),
+      threshold: isValidElement(thresholdEl) ? thresholdSlotFrom(tp) : NO_THRESHOLD,
+      areaKeys,
+      chartChildren: parts.filter(
+        (child) => !(isValidElement(child) && (child.type === Brush || child.type === Threshold)),
+      ),
     };
   }, [children]);
   const showBrush = brush.slot.present;
@@ -198,6 +224,16 @@ export function EvilAreaChart<
   const isExpanded = stackType === "expanded";
   const isStacked = stackType === "stacked" || isExpanded;
   const displayData = showBrush && !isLoading ? visibleData : data;
+
+  const thresholdParts = useThresholdParts({
+    slot: brush.threshold,
+    config,
+    data: displayData,
+    seriesKeys: brush.areaKeys,
+    isLoading,
+    // Stacked: a series' own value is not its plotted height there.
+    allowBreaches: !isStacked,
+  });
 
   // Updates selection state and notifies the parent
   const selectDataKey = useCallback(
@@ -267,7 +303,12 @@ export function EvilAreaChart<
           data={isLoading ? loadingData : displayData}
           {...chartProps}
         >
+          {thresholdParts.band}
           {brush.chartChildren}
+          {thresholdParts.overlays.map(({ key, ...overlay }) => (
+            <RechartsArea key={key} {...overlay} type={curveType} />
+          ))}
+          {thresholdParts.line}
           {isLoading && (
             <LoadingArea chartId={chartId} curveType={curveType} onShimmerExit={onShimmerExit} />
           )}
@@ -484,6 +525,8 @@ type GridProps = ComponentProps<typeof CartesianGrid>;
 function Grid({ vertical = false, strokeDasharray = "3 3", ...props }: GridProps) {
   return <CartesianGrid vertical={vertical} strokeDasharray={strokeDasharray} {...props} />;
 }
+
+export type { ThresholdProps, ThresholdSide };
 
 type TooltipProps = {
   variant?: TooltipVariant; // visual style of the tooltip surface
@@ -1124,6 +1167,7 @@ EvilAreaChart.ActiveDot = ActiveDot;
 EvilAreaChart.XAxis = XAxis;
 EvilAreaChart.YAxis = YAxis;
 EvilAreaChart.Grid = Grid;
+EvilAreaChart.Threshold = Threshold;
 EvilAreaChart.Tooltip = Tooltip;
 EvilAreaChart.Legend = Legend;
 EvilAreaChart.Brush = Brush;

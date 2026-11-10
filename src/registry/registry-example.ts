@@ -36,6 +36,17 @@ export const examples: Registry["items"] = [
     ],
   },
   {
+    name: "ex-threshold-echarts-area-chart",
+    registryDependencies: ["@evilcharts/echarts-area-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/echarts/ex-threshold-echarts-area-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
     name: "ex-brush-echarts-area-chart",
     registryDependencies: ["@evilcharts/echarts-area-chart"],
     type: "registry:block",
@@ -307,6 +318,17 @@ export const examples: Registry["items"] = [
     files: [
       {
         path: "examples/echarts/ex-gradient-colors-bump-echarts-line-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
+    name: "ex-threshold-echarts-line-chart",
+    registryDependencies: ["@evilcharts/echarts-line-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/echarts/ex-threshold-echarts-line-chart.tsx",
         type: "registry:block",
       },
     ],
@@ -1309,6 +1331,17 @@ export const examples: Registry["items"] = [
     ],
   },
   {
+    name: "ex-threshold-area-chart",
+    registryDependencies: ["@evilcharts/recharts-area-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/recharts/ex-threshold-area-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
     name: "ex-brush-area-chart",
     registryDependencies: ["@evilcharts/recharts-area-chart"],
     type: "registry:block",
@@ -1596,6 +1629,17 @@ export const examples: Registry["items"] = [
     ],
   },
   // Line Chart Loading State
+  {
+    name: "ex-threshold-line-chart",
+    registryDependencies: ["@evilcharts/recharts-line-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/recharts/ex-threshold-line-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
   {
     name: "ex-loading-state-line-chart",
     registryDependencies: ["@evilcharts/recharts-line-chart"],

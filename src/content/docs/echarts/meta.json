@@ -15,6 +15,7 @@
     "ui/tooltip",
     "ui/legend",
     "ui/dots",
-    "ui/brush"
+    "ui/brush",
+    "ui/threshold"
   ]
 }

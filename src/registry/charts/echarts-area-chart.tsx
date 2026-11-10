@@ -13,6 +13,17 @@ import {
   type ResolvedColors,
 } from "@/registry/ui/echarts-chart";
 import {
+  NO_THRESHOLD,
+  Threshold,
+  buildBreachSeries,
+  buildThresholdMarks,
+  thresholdAxisBounds,
+  thresholdSlotFrom,
+  type ThresholdProps,
+  type ThresholdSide,
+  type ThresholdSlot,
+} from "@/registry/ui/echarts-threshold";
+import {
   tooltipBaseOption,
   tooltipIndicatorHtml,
   tooltipRow,
@@ -60,6 +71,7 @@ import * as echarts from "echarts/core";
 
 // Re-export the shared types that were previously declared inline here, so
 // existing consumers/examples keep importing them from the chart module.
+export type { ThresholdProps, ThresholdSide };
 export type {
   ChartConfig,
   DotVariant,
@@ -130,6 +142,7 @@ const LOADING_SHIMMER_FEATHER = 0.2; // eased edge softening of the clip window
 const BRUSH_STROKE_OPACITY = 0.5; // mini-chart series stroke
 const BRUSH_FILL_OPACITY = 0.15; // mini-chart series fade, at the top stop
 const BRUSH_FILLER_OPACITY = 0; // selected-range wash — evil-brush draws none
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Public types
@@ -330,6 +343,7 @@ type CollectedConfig = {
   tooltip: TooltipSlot;
   legend: LegendSlot;
   brush: BrushSlot;
+  threshold: ThresholdSlot;
 };
 
 function collectConfig(children: ReactNode): CollectedConfig {
@@ -352,6 +366,7 @@ function collectConfig(children: ReactNode): CollectedConfig {
     isClickable: false,
   };
   let brush: BrushSlot = { present: false };
+  let threshold: ThresholdSlot = NO_THRESHOLD;
 
   Children.forEach(children, (child) => {
     if (!isValidElement(child)) return;
@@ -428,10 +443,13 @@ function collectConfig(children: ReactNode): CollectedConfig {
         formatLabel: props.formatLabel,
         onChange: props.onChange,
       };
+    } else if (type === Threshold) {
+      const props = child.props as ThresholdProps;
+      threshold = thresholdSlotFrom(props);
     }
   });
 
-  return { areas, xAxis, yAxis, showGrid, tooltip, legend, brush };
+  return { areas, xAxis, yAxis, showGrid, tooltip, legend, brush, threshold };
 }
 
 // Color plumbing (ChartConfig, getColorsCount, distributeColors, buildChartCss,
@@ -753,6 +771,7 @@ type OptionBuildContext = {
   selectedDataKey: string | null;
   hasSelection: boolean;
   showGrid: boolean;
+  thresholdSlot: ThresholdSlot;
   xAxisSlot: XAxisSlot;
   yAxisSlot: YAxisSlot;
   tooltipSlot: TooltipSlot;
@@ -799,6 +818,7 @@ function buildChartLayout({ legendSlot, xAxisSlot, showBrush, brushHeight }: Opt
 
 function buildMainAxes(ctx: OptionBuildContext): { xAxis: XAxisOption; yAxis: YAxisOption } {
   const { xAxisSlot, yAxisSlot, showGrid, isLoading, isExpanded, categories, loadingData } = ctx;
+  const { thresholdSlot } = ctx;
   const { tokens } = ctx.resolved;
 
   const axisLabelColor = tokens.mutedForeground;
@@ -846,10 +866,13 @@ function buildMainAxes(ctx: OptionBuildContext): { xAxis: XAxisOption; yAxis: YA
   // An ECharts axis with `show: false` hides its splitLines too, but Recharts'
   // <CartesianGrid> draws with or without a visible <YAxis>. Keep the axis on
   // whenever <Grid/> is present and gate the LABELS on <YAxis/> instead.
+  const { min: thresholdMin, max: thresholdMax } = thresholdAxisBounds(thresholdSlot);
+
   const yAxis: YAxisOption = {
     type: "value",
     show: yAxisSlot.present || showGrid,
-    max: isExpanded ? 1 : undefined,
+    max: isExpanded ? 1 : thresholdMax,
+    min: thresholdMin,
     // Axis title — rendered rotated alongside the tick labels, same styling.
     name: isLoading ? undefined : yAxisSlot.label,
     nameLocation: "middle",
@@ -1119,7 +1142,17 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
     ? data.map((row) => seriesKeys.reduce((sum, key) => sum + (Number(row[key]) || 0), 0))
     : [];
 
-  return areas.flatMap((area): LineSeriesOption[] => {
+  // Shared with the breach overlay, so both read the same normalization.
+  const valuesFor = (key: string): (number | null)[] =>
+    data.map((row, i) => {
+      if (row[key] == null) return null;
+      const value = Number(row[key]) || 0;
+      if (!isExpanded) return value;
+      const total = rowTotals[i];
+      return total ? value / total : 0;
+    });
+
+  const series = areas.flatMap((area): LineSeriesOption[] => {
     const key = area.dataKey;
     const slots = resolved.series[key] ?? ["rgba(120, 120, 120, 1)"];
     const paint = seriesPaint(slots);
@@ -1128,13 +1161,7 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
     const opacity = getOpacity(selectedDataKey, key);
     const curve = curveConfig(area.curveType ?? curveType);
 
-    const values = data.map((row, i) => {
-      if (row[key] == null) return null;
-      const value = Number(row[key]) || 0;
-      if (!isExpanded) return value;
-      const total = rowTotals[i];
-      return total ? value / total : 0;
-    });
+    const values = valuesFor(key);
     const n = values.length;
     // Hover-reveal is a root-level mode and owns the whole area rendering, so it
     // takes precedence over a per-area buffer tail when both are set.
@@ -1403,6 +1430,27 @@ function buildAreaSeries(ctx: OptionBuildContext): LineSeriesOption[] {
 
     return [mainSeries, bufferSeries, bufferFillSeries];
   });
+
+  // The band and the line annotate the axis, not a series: attach them once, to
+  // whichever series came out first.
+  const marks = buildThresholdMarks(ctx.thresholdSlot, resolved);
+  if (series.length > 0 && (marks.markArea || marks.markLine)) Object.assign(series[0], marks);
+
+  return [
+    ...series,
+    ...buildBreachSeries({
+      slot: ctx.thresholdSlot,
+      resolved,
+      series: areas.map((area) => ({
+        key: area.dataKey,
+        curve: curveConfig(area.curveType ?? curveType),
+        z: selectedDataKey === area.dataKey ? 3 : hasSelection ? 1 : 2,
+      })),
+      valuesFor,
+      // Stacked: a series' own value is not its plotted height there.
+      allowBreaches: !isStacked,
+    }),
+  ];
 }
 
 // Copy a value list with everything AFTER `idx` nulled — the hover-reveal cut:
@@ -1627,6 +1675,7 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
     tooltip: tooltipSlot,
     legend: legendSlot,
     brush: brushSlot,
+    threshold: thresholdSlot,
   } = collected;
   // Brush is a <Brush> child now (not props): presence turns it on, its props
   // carry height/formatLabel/onChange.
@@ -1634,6 +1683,17 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
   const brushHeight = brushSlot.height ?? 56;
 
   const seriesKeys = useMemo(() => areas.map((area) => area.dataKey), [areas]);
+
+  // The threshold's color key is NOT a series, so resolveColors never reads it
+  // off the DOM unless it is named here — without this the threshold silently
+  // falls back to the foreground token.
+  const resolvedKeys = useMemo(
+    () =>
+      thresholdSlot.dataKey && !seriesKeys.includes(thresholdSlot.dataKey)
+        ? [...seriesKeys, thresholdSlot.dataKey]
+        : seriesKeys,
+    [seriesKeys, thresholdSlot.dataKey],
+  );
 
   // x category key: <XAxis dataKey> → root xDataKey → first data column no <Area> claims.
   const xCategoryKey = useMemo(() => {
@@ -1763,6 +1823,7 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
       selectedDataKey,
       hasSelection,
       showGrid,
+      thresholdSlot,
       xAxisSlot,
       yAxisSlot,
       tooltipSlot,
@@ -1836,6 +1897,7 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
     data,
     config,
     areas,
+    thresholdSlot,
     seriesKeys,
     xCategoryKey,
     curveType,
@@ -2140,7 +2202,7 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
 
     // Colors come from the <style> committed just before this effect ran — read
     // them here, right before the push, rather than round-tripping through state.
-    live.resolved = resolveColors(container, config, seriesKeys);
+    live.resolved = resolveColors(container, config, resolvedKeys);
 
     const push = (withEntrance: boolean) => {
       const option = buildOption();
@@ -2175,10 +2237,11 @@ export function EChartsAreaChart<TData extends Record<string, unknown>>({
     // tokens (the .dark class changed, or textures need renderer-sized rebakes)
     // and push an update-style option.
     live.repush = () => {
-      live.resolved = resolveColors(container, config, seriesKeys);
+      live.resolved = resolveColors(container, config, resolvedKeys);
       push(false);
     };
   }, [
+    resolvedKeys,
     renderer,
     live,
     buildOption,
@@ -2355,6 +2418,7 @@ EChartsAreaChart.ActiveDot = ActiveDot;
 EChartsAreaChart.XAxis = XAxis;
 EChartsAreaChart.YAxis = YAxis;
 EChartsAreaChart.Grid = Grid;
+EChartsAreaChart.Threshold = Threshold;
 EChartsAreaChart.Tooltip = Tooltip;
 EChartsAreaChart.Legend = Legend;
 EChartsAreaChart.Brush = Brush;

@@ -52,7 +52,7 @@ Targeted ECharts tooltip escaping tests live in `tests/echarts-tooltip.test.ts`;
 ### Installable registry: `src/registry/`
 
 - `charts/`: 18 flat chart modules, one for each of nine chart types per provider: area, line, bar, composed, radar, pie, radial, sankey, and heatmap.
-- `ui/`: provider-specific shared chart primitives. Recharts currently has chart, tooltip, legend, dot, brush, and background modules. ECharts has chart, tooltip, legend, dot, and brush modules.
+- `ui/`: provider-specific shared chart primitives. Recharts currently has chart, tooltip, legend, dot, brush, background, and threshold modules. ECharts has chart, tooltip, legend, dot, brush, and threshold modules.
 - `examples/recharts/` and `examples/echarts/`: small `ex-*` documentation demos.
 - `blocks/recharts/` and `blocks/echarts/`: larger installable compositions prefixed `b-` on disk.
 - `registry-chart.ts`, `registry-ui.ts`, `registry-example.ts`, and `registry-blocks.ts`: item manifests, dependencies, and consumer target paths.

@@ -32,6 +32,14 @@ import {
   LoadingIndicator,
 } from "@/registry/ui/recharts-chart";
 import {
+  NO_THRESHOLD,
+  Threshold,
+  thresholdSlotFrom,
+  useThresholdParts,
+  type ThresholdProps,
+  type ThresholdSide,
+} from "@/registry/ui/recharts-threshold";
+import {
   ChartTooltip,
   ChartTooltipContent,
   type TooltipRoundness,
@@ -85,6 +93,7 @@ type RevealAnimationType = Exclude<LineAnimationType, "none">;
  * <Line />, <XAxis />, <Legend />, and friends can read it without prop drilling.
  * Sub-components are composed freely — the provider is the single source of truth.
  */
+
 type LineChartContextValue = {
   config: ChartConfig; // colors + labels for every series
   curveType: CurveType; // default curve interpolation each <Line /> inherits
@@ -177,6 +186,19 @@ export function EvilLineChart<
     const parts = Children.toArray(children);
     const brushEl = parts.find((child) => isValidElement(child) && child.type === Brush);
     const bp = (isValidElement(brushEl) ? brushEl.props : {}) as BrushProps;
+    // <Threshold> is config-only too, for a Recharts-specific reason: the ROOT
+    // injects its primitives, so no part ever has to return several elements.
+    // Recharts identifies its children by type and does not reliably look
+    // inside a fragment, which is why every other part returns exactly one.
+    const thresholdEl = parts.find((child) => isValidElement(child) && child.type === Threshold);
+    const tp = (isValidElement(thresholdEl) ? thresholdEl.props : {}) as ThresholdProps;
+    // The composed series, so the breach overlay knows what to shadow.
+    const lineKeys: string[] = [];
+    for (const child of parts) {
+      if (isValidElement(child) && child.type === Line) {
+        lineKeys.push((child.props as LineProps).dataKey);
+      }
+    }
     return {
       slot: {
         present: isValidElement(brushEl),
@@ -184,12 +206,24 @@ export function EvilLineChart<
         formatLabel: bp.formatLabel,
         onChange: bp.onChange,
       },
-      chartChildren: parts.filter((child) => !(isValidElement(child) && child.type === Brush)),
+      threshold: isValidElement(thresholdEl) ? thresholdSlotFrom(tp) : NO_THRESHOLD,
+      lineKeys,
+      chartChildren: parts.filter(
+        (child) => !(isValidElement(child) && (child.type === Brush || child.type === Threshold)),
+      ),
     };
   }, [children]);
   const showBrush = brush.slot.present;
 
   const displayData = showBrush && !isLoading ? visibleData : data;
+
+  const thresholdParts = useThresholdParts({
+    slot: brush.threshold,
+    config,
+    data: displayData,
+    seriesKeys: brush.lineKeys,
+    isLoading,
+  });
 
   // Updates selection state and notifies the parent
   const selectDataKey = useCallback(
@@ -246,7 +280,12 @@ export function EvilLineChart<
           data={isLoading ? loadingData : displayData}
           {...chartProps}
         >
+          {thresholdParts.band}
           {brush.chartChildren}
+          {thresholdParts.overlays.map(({ key, ...overlay }) => (
+            <RechartsLine key={key} {...overlay} type={curveType} />
+          ))}
+          {thresholdParts.line}
           {isLoading && (
             <LoadingLine chartId={chartId} curveType={curveType} onShimmerExit={onShimmerExit} />
           )}
@@ -471,6 +510,8 @@ type GridProps = ComponentProps<typeof CartesianGrid>;
 function Grid({ vertical = false, strokeDasharray = "3 3", ...props }: GridProps) {
   return <CartesianGrid vertical={vertical} strokeDasharray={strokeDasharray} {...props} />;
 }
+
+export type { ThresholdProps, ThresholdSide };
 
 type TooltipProps = {
   variant?: TooltipVariant; // visual style of the tooltip surface
@@ -997,6 +1038,7 @@ EvilLineChart.ActiveDot = ActiveDot;
 EvilLineChart.XAxis = XAxis;
 EvilLineChart.YAxis = YAxis;
 EvilLineChart.Grid = Grid;
+EvilLineChart.Threshold = Threshold;
 EvilLineChart.Tooltip = Tooltip;
 EvilLineChart.Legend = Legend;
 EvilLineChart.Brush = Brush;
