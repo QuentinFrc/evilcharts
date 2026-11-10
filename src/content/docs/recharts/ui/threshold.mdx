@@ -24,9 +24,41 @@ import { EvilAreaChart } from "@/components/evilcharts/charts/recharts-area-char
 The same part is composed on the line chart, from the same shared module — so one chart's
 `<Threshold />` is the very same component as another's.
 
-<ComponentPreview title="Area chart" name="ex-threshold-area-chart" />
+## Sides
 
-<ComponentPreview title="Line chart" name="ex-threshold-line-chart" />
+Which side of the threshold counts as a breach. A ceiling is the default: a budget the series stays
+under. A floor inverts the reading — the series has to stay above.
+
+### Ceiling
+
+<ComponentPreview title='side="above"' name="ex-threshold-area-chart" />
+
+### Floor
+
+<ComponentPreview title='side="below"' name="ex-threshold-floor-area-chart" />
+
+## Breaches
+
+By default the runs that crossed are repainted, with a dot on each point past the threshold. Turn it
+off and the band and the line carry the reading on their own.
+
+### Without breach highlighting
+
+<ComponentPreview title="highlightBreaches={false}" name="ex-threshold-no-breaches-area-chart" />
+
+## Color
+
+`dataKey` names a config entry, so the threshold takes a color from the same place the series do.
+Omit it and the threshold paints in the foreground color — useful when the chart already carries
+enough hue.
+
+### Without a color key
+
+<ComponentPreview title="no dataKey" name="ex-threshold-neutral-area-chart" />
+
+## On a line chart
+
+<ComponentPreview title="line chart" name="ex-threshold-line-chart" />
 
 ## API Reference
 

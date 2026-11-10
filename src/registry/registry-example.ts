@@ -36,6 +36,39 @@ export const examples: Registry["items"] = [
     ],
   },
   {
+    name: "ex-threshold-floor-echarts-area-chart",
+    registryDependencies: ["@evilcharts/echarts-area-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/echarts/ex-threshold-floor-echarts-area-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
+    name: "ex-threshold-no-breaches-echarts-area-chart",
+    registryDependencies: ["@evilcharts/echarts-area-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/echarts/ex-threshold-no-breaches-echarts-area-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
+    name: "ex-threshold-neutral-echarts-area-chart",
+    registryDependencies: ["@evilcharts/echarts-area-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/echarts/ex-threshold-neutral-echarts-area-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
     name: "ex-threshold-echarts-area-chart",
     registryDependencies: ["@evilcharts/echarts-area-chart"],
     type: "registry:block",
@@ -1326,6 +1359,39 @@ export const examples: Registry["items"] = [
     files: [
       {
         path: "examples/recharts/ex-area-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
+    name: "ex-threshold-floor-area-chart",
+    registryDependencies: ["@evilcharts/recharts-area-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/recharts/ex-threshold-floor-area-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
+    name: "ex-threshold-no-breaches-area-chart",
+    registryDependencies: ["@evilcharts/recharts-area-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/recharts/ex-threshold-no-breaches-area-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
+    name: "ex-threshold-neutral-area-chart",
+    registryDependencies: ["@evilcharts/recharts-area-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/recharts/ex-threshold-neutral-area-chart.tsx",
         type: "registry:block",
       },
     ],
