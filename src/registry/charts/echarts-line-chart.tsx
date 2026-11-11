@@ -13,6 +13,17 @@ import {
   type ResolvedColors,
 } from "@/registry/ui/echarts-chart";
 import {
+  NO_TOLERANCE,
+  Tolerance,
+  buildToleranceBreachSeries,
+  buildToleranceMarks,
+  toleranceAxisBounds,
+  toleranceSlotFrom,
+  warnExtraTolerances,
+  type ToleranceProps,
+  type ToleranceSlot,
+} from "@/registry/ui/echarts-tolerance";
+import {
   tooltipBaseOption,
   tooltipIndicatorHtml,
   tooltipRow,
@@ -66,6 +77,7 @@ import * as echarts from "echarts/core";
 
 // Re-export the shared types that were previously declared inline here, so
 // existing consumers/examples keep importing them from the chart module.
+export type { ToleranceProps };
 export type {
   ChartConfig,
   DotVariant,
@@ -160,6 +172,7 @@ const LOADING_SHIMMER_BAND = 0.2; // window half-width, fraction of chart width
 const LOADING_SHIMMER_FEATHER = 0.2; // eased edge softening of the clip window
 const BRUSH_STROKE_OPACITY = 0.5; // mini-chart series stroke (evil-brush "line" variant)
 const BRUSH_FILLER_OPACITY = 0; // selected-range wash — evil-brush draws none
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Public types
@@ -349,6 +362,7 @@ type CollectedConfig = {
   tooltip: TooltipSlot;
   legend: LegendSlot;
   brush: BrushSlot;
+  tolerance: ToleranceSlot;
 };
 
 function collectConfig(children: ReactNode): CollectedConfig {
@@ -371,6 +385,8 @@ function collectConfig(children: ReactNode): CollectedConfig {
     isClickable: false,
   };
   let brush: BrushSlot = { present: false };
+  let tolerance: ToleranceSlot = NO_TOLERANCE;
+  let toleranceCount = 0;
 
   Children.forEach(children, (child) => {
     if (!isValidElement(child)) return;
@@ -449,10 +465,15 @@ function collectConfig(children: ReactNode): CollectedConfig {
         formatLabel: props.formatLabel,
         onChange: props.onChange,
       };
+    } else if (type === Tolerance) {
+      const props = child.props as ToleranceProps;
+      toleranceCount += 1;
+      if (!tolerance.present) tolerance = toleranceSlotFrom(props);
     }
   });
+  warnExtraTolerances(toleranceCount);
 
-  return { lines, xAxis, yAxis, showGrid, tooltip, legend, brush };
+  return { lines, xAxis, yAxis, showGrid, tooltip, legend, brush, tolerance };
 }
 
 // Color plumbing (ChartConfig, getColorsCount, distributeColors, buildChartCss,
@@ -658,6 +679,7 @@ type OptionBuildContext = {
   selectedDataKey: string | null;
   hasSelection: boolean;
   showGrid: boolean;
+  toleranceSlot: ToleranceSlot;
   xAxisSlot: XAxisSlot;
   yAxisSlot: YAxisSlot;
   tooltipSlot: TooltipSlot;
@@ -704,6 +726,7 @@ function buildChartLayout({ legendSlot, xAxisSlot, showBrush, brushHeight }: Opt
 
 function buildMainAxes(ctx: OptionBuildContext): { xAxis: XAxisOption; yAxis: YAxisOption } {
   const { xAxisSlot, yAxisSlot, showGrid, isLoading, categories, loadingData } = ctx;
+  const { toleranceSlot } = ctx;
   const { tokens } = ctx.resolved;
 
   const axisLabelColor = tokens.mutedForeground;
@@ -752,9 +775,13 @@ function buildMainAxes(ctx: OptionBuildContext): { xAxis: XAxisOption; yAxis: YA
   // An ECharts axis with `show: false` hides its splitLines too, but Recharts'
   // <CartesianGrid> draws with or without a visible <YAxis>. Keep the axis on
   // whenever <Grid/> is present and gate the LABELS on <YAxis/> instead.
+  const { min: toleranceMin, max: toleranceMax } = toleranceAxisBounds(toleranceSlot);
+
   const yAxis: YAxisOption = {
     type: "value",
     show: yAxisSlot.present || showGrid,
+    max: toleranceMax,
+    min: toleranceMin,
     // Axis title — rendered rotated alongside the tick labels, same styling.
     name: isLoading ? undefined : yAxisSlot.label,
     nameLocation: "middle",
@@ -1019,7 +1046,7 @@ function buildLineSeries(ctx: OptionBuildContext): LineSeriesOption[] {
   } = ctx;
   const background = resolved.tokens.background;
 
-  return lines.flatMap((line): LineSeriesOption[] => {
+  const series = lines.flatMap((line): LineSeriesOption[] => {
     const key = line.dataKey;
     const slots = resolved.series[key] ?? ["rgba(120, 120, 120, 1)"];
     const paint = seriesPaint(slots);
@@ -1269,6 +1296,25 @@ function buildLineSeries(ctx: OptionBuildContext): LineSeriesOption[] {
 
     return [...glowSeries, mainSeries, bufferSeries];
   });
+
+  // The band and the line annotate the axis, not a series: attach them once, to
+  // whichever series came out first.
+  const marks = buildToleranceMarks(ctx.toleranceSlot, resolved);
+  if (series.length > 0 && (marks.markArea || marks.markLine)) Object.assign(series[0], marks);
+
+  return [
+    ...series,
+    ...buildToleranceBreachSeries({
+      slot: ctx.toleranceSlot,
+      resolved,
+      series: lines.map((line) => ({
+        key: line.dataKey,
+        curve: curveConfig(line.curveType ?? curveType),
+        z: selectedDataKey === line.dataKey ? 3 : hasSelection ? 1 : 2,
+      })),
+      valuesFor: (key) => data.map((row) => (row[key] == null ? null : Number(row[key]) || 0)),
+    }),
+  ];
 }
 
 // Copy a value list with everything AFTER `idx` nulled — the hover-reveal cut:
@@ -1431,6 +1477,7 @@ export function EChartsLineChart<TData extends Record<string, unknown>>({
     tooltip: tooltipSlot,
     legend: legendSlot,
     brush: brushSlot,
+    tolerance: toleranceSlot,
   } = collected;
   // Brush is a <Brush> child now (not props): presence turns it on, its props
   // carry height/formatLabel/onChange.
@@ -1438,6 +1485,16 @@ export function EChartsLineChart<TData extends Record<string, unknown>>({
   const brushHeight = brushSlot.height ?? 56;
 
   const seriesKeys = useMemo(() => lines.map((line) => line.dataKey), [lines]);
+
+  // The band's color keys are NOT series, so resolveColors never reads them off
+  // the DOM unless they are named here — without this the band and the runs
+  // that left it silently fall back to their tokens.
+  const resolvedKeys = useMemo(() => {
+    const extra = [toleranceSlot.dataKey, toleranceSlot.breachKey].filter(
+      (key): key is string => !!key && !seriesKeys.includes(key),
+    );
+    return extra.length > 0 ? [...seriesKeys, ...new Set(extra)] : seriesKeys;
+  }, [seriesKeys, toleranceSlot.dataKey, toleranceSlot.breachKey]);
 
   // x category key: <XAxis dataKey> → root xDataKey → first data column no <Line> claims.
   const xCategoryKey = useMemo(() => {
@@ -1563,6 +1620,7 @@ export function EChartsLineChart<TData extends Record<string, unknown>>({
       selectedDataKey,
       hasSelection,
       showGrid,
+      toleranceSlot,
       xAxisSlot,
       yAxisSlot,
       tooltipSlot,
@@ -1635,6 +1693,7 @@ export function EChartsLineChart<TData extends Record<string, unknown>>({
     data,
     config,
     lines,
+    toleranceSlot,
     xCategoryKey,
     curveType,
     selectedDataKey,
@@ -1892,7 +1951,7 @@ export function EChartsLineChart<TData extends Record<string, unknown>>({
 
     // Colors come from the <style> committed just before this effect ran — read
     // them here, right before the push, rather than round-tripping through state.
-    live.resolved = resolveColors(container, config, seriesKeys);
+    live.resolved = resolveColors(container, config, resolvedKeys);
 
     const push = (withEntrance: boolean) => {
       const option = buildOption();
@@ -1927,10 +1986,11 @@ export function EChartsLineChart<TData extends Record<string, unknown>>({
     // tokens (the .dark class changed, or the renderer resized) and push an
     // update-style option.
     live.repush = () => {
-      live.resolved = resolveColors(container, config, seriesKeys);
+      live.resolved = resolveColors(container, config, resolvedKeys);
       push(false);
     };
   }, [
+    resolvedKeys,
     renderer,
     live,
     buildOption,
@@ -2106,6 +2166,7 @@ EChartsLineChart.ActiveDot = ActiveDot;
 EChartsLineChart.XAxis = XAxis;
 EChartsLineChart.YAxis = YAxis;
 EChartsLineChart.Grid = Grid;
+EChartsLineChart.Tolerance = Tolerance;
 EChartsLineChart.Tooltip = Tooltip;
 EChartsLineChart.Legend = Legend;
 EChartsLineChart.Brush = Brush;

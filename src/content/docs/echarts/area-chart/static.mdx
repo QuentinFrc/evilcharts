@@ -198,6 +198,15 @@ Pass `renderer="svg"` to the chart root to opt into ECharts' SVG renderer. Omit 
 <ComponentPreview className="mb-0" title="variant='lines'" name="ex-lines-area-variant-echarts-area-chart"  />
 <ComponentPreview title="variant='hatched'" name="ex-hatched-area-variant-echarts-area-chart"  />
 
+### Tolerance
+
+A norm the series is read against, rather than another measure: a faint band over what is
+accepted — a ceiling, a floor or the corridor between the two — its bounds, and the runs
+that left it repainted. Full props and behavior on the [Tolerance](/docs/echarts/ui/tolerance)
+page.
+
+<ComponentPreview title="min={2} max={8}" name="ex-tolerance-echarts-area-chart" />
+
 ## API Reference
 
 Props are grouped by the part they belong to. Regardless of renderer, each part is declarative config the root compiles, but the API mirrors the Recharts twin one-to-one.
@@ -326,6 +335,11 @@ The category and value axes. Include `<XAxis />` or `<YAxis />` to show each; om
 <ApiHeading>Grid</ApiHeading>
 
 The background grid lines. Include it to draw the dashed horizontal split lines; omit it and they don't. Takes no props.
+
+<ApiHeading>Tolerance</ApiHeading>
+
+The norm the series is read against. Include it to draw the band; omit it and nothing is
+drawn. Its props are documented once, on the [Tolerance](/docs/echarts/ui/tolerance) page.
 
 <ApiHeading>Tooltip</ApiHeading>
 

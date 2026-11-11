@@ -45,6 +45,23 @@
       ]
     },
     {
+      "name": "recharts-tolerance",
+      "type": "registry:component",
+      "dependencies": [
+        "recharts"
+      ],
+      "registryDependencies": [
+        "@evilcharts/recharts-chart"
+      ],
+      "files": [
+        {
+          "path": "src/registry/ui/recharts-tolerance.tsx",
+          "type": "registry:component",
+          "target": "components/evilcharts/ui/recharts-tolerance.tsx"
+        }
+      ]
+    },
+    {
       "name": "recharts-dot",
       "type": "registry:component",
       "dependencies": [
@@ -135,6 +152,23 @@
       ]
     },
     {
+      "name": "echarts-tolerance",
+      "type": "registry:component",
+      "dependencies": [
+        "echarts"
+      ],
+      "registryDependencies": [
+        "@evilcharts/echarts-chart"
+      ],
+      "files": [
+        {
+          "path": "src/registry/ui/echarts-tolerance.tsx",
+          "type": "registry:component",
+          "target": "components/evilcharts/ui/echarts-tolerance.tsx"
+        }
+      ]
+    },
+    {
       "name": "echarts-dot",
       "type": "registry:component",
       "dependencies": [
@@ -173,7 +207,8 @@
         "@evilcharts/echarts-tooltip",
         "@evilcharts/echarts-legend",
         "@evilcharts/echarts-dot",
-        "@evilcharts/echarts-brush"
+        "@evilcharts/echarts-brush",
+        "@evilcharts/echarts-tolerance"
       ],
       "dependencies": [
         "echarts",
@@ -196,7 +231,8 @@
         "@evilcharts/echarts-dot",
         "@evilcharts/echarts-tooltip",
         "@evilcharts/echarts-legend",
-        "@evilcharts/echarts-brush"
+        "@evilcharts/echarts-brush",
+        "@evilcharts/echarts-tolerance"
       ],
       "dependencies": [
         "echarts",
@@ -370,7 +406,8 @@
         "@evilcharts/recharts-legend",
         "@evilcharts/recharts-dot",
         "@evilcharts/recharts-brush",
-        "@evilcharts/recharts-background"
+        "@evilcharts/recharts-background",
+        "@evilcharts/recharts-tolerance"
       ],
       "dependencies": [
         "recharts",
@@ -394,7 +431,8 @@
         "@evilcharts/recharts-legend",
         "@evilcharts/recharts-dot",
         "@evilcharts/recharts-brush",
-        "@evilcharts/recharts-background"
+        "@evilcharts/recharts-background",
+        "@evilcharts/recharts-tolerance"
       ],
       "dependencies": [
         "recharts",
@@ -599,6 +637,84 @@
       "files": [
         {
           "path": "src/registry/examples/echarts/ex-svg-renderer-echarts-area-chart.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
+      "name": "ex-tolerance-echarts-area-chart",
+      "registryDependencies": [
+        "@evilcharts/echarts-area-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/examples/echarts/ex-tolerance-echarts-area-chart.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
+      "name": "ex-tolerance-ceiling-echarts-area-chart",
+      "registryDependencies": [
+        "@evilcharts/echarts-area-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/examples/echarts/ex-tolerance-ceiling-echarts-area-chart.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
+      "name": "ex-tolerance-floor-echarts-area-chart",
+      "registryDependencies": [
+        "@evilcharts/echarts-area-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/examples/echarts/ex-tolerance-floor-echarts-area-chart.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
+      "name": "ex-tolerance-target-echarts-area-chart",
+      "registryDependencies": [
+        "@evilcharts/echarts-area-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/examples/echarts/ex-tolerance-target-echarts-area-chart.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
+      "name": "ex-tolerance-no-breaches-echarts-area-chart",
+      "registryDependencies": [
+        "@evilcharts/echarts-area-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/examples/echarts/ex-tolerance-no-breaches-echarts-area-chart.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
+      "name": "ex-tolerance-neutral-echarts-area-chart",
+      "registryDependencies": [
+        "@evilcharts/echarts-area-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/examples/echarts/ex-tolerance-neutral-echarts-area-chart.tsx",
           "type": "registry:block"
         }
       ]
@@ -924,6 +1040,19 @@
       "files": [
         {
           "path": "src/registry/examples/echarts/ex-gradient-colors-bump-echarts-line-chart.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
+      "name": "ex-tolerance-echarts-line-chart",
+      "registryDependencies": [
+        "@evilcharts/echarts-line-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/examples/echarts/ex-tolerance-echarts-line-chart.tsx",
           "type": "registry:block"
         }
       ]
@@ -2099,6 +2228,84 @@
       ]
     },
     {
+      "name": "ex-tolerance-area-chart",
+      "registryDependencies": [
+        "@evilcharts/recharts-area-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/examples/recharts/ex-tolerance-area-chart.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
+      "name": "ex-tolerance-ceiling-area-chart",
+      "registryDependencies": [
+        "@evilcharts/recharts-area-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/examples/recharts/ex-tolerance-ceiling-area-chart.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
+      "name": "ex-tolerance-floor-area-chart",
+      "registryDependencies": [
+        "@evilcharts/recharts-area-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/examples/recharts/ex-tolerance-floor-area-chart.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
+      "name": "ex-tolerance-target-area-chart",
+      "registryDependencies": [
+        "@evilcharts/recharts-area-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/examples/recharts/ex-tolerance-target-area-chart.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
+      "name": "ex-tolerance-no-breaches-area-chart",
+      "registryDependencies": [
+        "@evilcharts/recharts-area-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/examples/recharts/ex-tolerance-no-breaches-area-chart.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
+      "name": "ex-tolerance-neutral-area-chart",
+      "registryDependencies": [
+        "@evilcharts/recharts-area-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/examples/recharts/ex-tolerance-neutral-area-chart.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
       "name": "ex-brush-area-chart",
       "registryDependencies": [
         "@evilcharts/recharts-area-chart"
@@ -2419,6 +2626,19 @@
       "files": [
         {
           "path": "src/registry/examples/recharts/ex-gradient-colors-bump-line-chart.tsx",
+          "type": "registry:block"
+        }
+      ]
+    },
+    {
+      "name": "ex-tolerance-line-chart",
+      "registryDependencies": [
+        "@evilcharts/recharts-line-chart"
+      ],
+      "type": "registry:block",
+      "files": [
+        {
+          "path": "src/registry/examples/recharts/ex-tolerance-line-chart.tsx",
           "type": "registry:block"
         }
       ]

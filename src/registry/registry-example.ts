@@ -36,6 +36,72 @@ export const examples: Registry["items"] = [
     ],
   },
   {
+    name: "ex-tolerance-echarts-area-chart",
+    registryDependencies: ["@evilcharts/echarts-area-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/echarts/ex-tolerance-echarts-area-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
+    name: "ex-tolerance-ceiling-echarts-area-chart",
+    registryDependencies: ["@evilcharts/echarts-area-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/echarts/ex-tolerance-ceiling-echarts-area-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
+    name: "ex-tolerance-floor-echarts-area-chart",
+    registryDependencies: ["@evilcharts/echarts-area-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/echarts/ex-tolerance-floor-echarts-area-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
+    name: "ex-tolerance-target-echarts-area-chart",
+    registryDependencies: ["@evilcharts/echarts-area-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/echarts/ex-tolerance-target-echarts-area-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
+    name: "ex-tolerance-no-breaches-echarts-area-chart",
+    registryDependencies: ["@evilcharts/echarts-area-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/echarts/ex-tolerance-no-breaches-echarts-area-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
+    name: "ex-tolerance-neutral-echarts-area-chart",
+    registryDependencies: ["@evilcharts/echarts-area-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/echarts/ex-tolerance-neutral-echarts-area-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
     name: "ex-brush-echarts-area-chart",
     registryDependencies: ["@evilcharts/echarts-area-chart"],
     type: "registry:block",
@@ -307,6 +373,17 @@ export const examples: Registry["items"] = [
     files: [
       {
         path: "examples/echarts/ex-gradient-colors-bump-echarts-line-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
+    name: "ex-tolerance-echarts-line-chart",
+    registryDependencies: ["@evilcharts/echarts-line-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/echarts/ex-tolerance-echarts-line-chart.tsx",
         type: "registry:block",
       },
     ],
@@ -1309,6 +1386,72 @@ export const examples: Registry["items"] = [
     ],
   },
   {
+    name: "ex-tolerance-area-chart",
+    registryDependencies: ["@evilcharts/recharts-area-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/recharts/ex-tolerance-area-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
+    name: "ex-tolerance-ceiling-area-chart",
+    registryDependencies: ["@evilcharts/recharts-area-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/recharts/ex-tolerance-ceiling-area-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
+    name: "ex-tolerance-floor-area-chart",
+    registryDependencies: ["@evilcharts/recharts-area-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/recharts/ex-tolerance-floor-area-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
+    name: "ex-tolerance-target-area-chart",
+    registryDependencies: ["@evilcharts/recharts-area-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/recharts/ex-tolerance-target-area-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
+    name: "ex-tolerance-no-breaches-area-chart",
+    registryDependencies: ["@evilcharts/recharts-area-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/recharts/ex-tolerance-no-breaches-area-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
+    name: "ex-tolerance-neutral-area-chart",
+    registryDependencies: ["@evilcharts/recharts-area-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/recharts/ex-tolerance-neutral-area-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
     name: "ex-brush-area-chart",
     registryDependencies: ["@evilcharts/recharts-area-chart"],
     type: "registry:block",
@@ -1596,6 +1739,17 @@ export const examples: Registry["items"] = [
     ],
   },
   // Line Chart Loading State
+  {
+    name: "ex-tolerance-line-chart",
+    registryDependencies: ["@evilcharts/recharts-line-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/recharts/ex-tolerance-line-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
   {
     name: "ex-loading-state-line-chart",
     registryDependencies: ["@evilcharts/recharts-line-chart"],

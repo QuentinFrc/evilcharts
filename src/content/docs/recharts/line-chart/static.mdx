@@ -183,6 +183,15 @@ Examples with different `variants` — change the `curveType` and `strokeVariant
 <ComponentPreview title="glowing - solid colors" name="ex-glowing-mobile-line-chart"  />
 
 
+### Tolerance
+
+A norm the series is read against, rather than another measure: a faint band over what is
+accepted — a ceiling, a floor or the corridor between the two — its bounds, and the runs
+that left it repainted. Full props and behavior on the [Tolerance](/docs/recharts/ui/tolerance)
+page.
+
+<ComponentPreview title="min={2} max={8}" name="ex-tolerance-line-chart" />
+
 ## API Reference
 
 Props below are grouped by the component they belong to.
@@ -302,6 +311,11 @@ The background grid lines. Defaults to horizontal-only dashed lines and forwards
     Every Recharts CartesianGrid prop is forwarded as-is. See the <Link href="https://recharts.github.io/en-US/api/CartesianGrid/" _blank>Recharts CartesianGrid documentation</Link>.
   </ApiRow>
 </ApiTable>
+
+<ApiHeading>Tolerance</ApiHeading>
+
+The norm the series is read against. Include it to draw the band; omit it and nothing is
+drawn. Its props are documented once, on the [Tolerance](/docs/recharts/ui/tolerance) page.
 
 <ApiHeading>Tooltip</ApiHeading>
 

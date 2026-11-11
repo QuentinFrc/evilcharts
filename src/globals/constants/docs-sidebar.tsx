@@ -7,6 +7,7 @@ import {
   HouseIcon,
   ShapesIcon,
   SquareAddonIcon,
+  ToleranceIcon,
   TooltipIcon,
 } from "@/assets/icons";
 import type { Provider } from "@/globals/constants/providers";
@@ -70,6 +71,11 @@ export function getChartComponentOptions(provider: Provider): SidebarOption[] {
       name: "Brush",
       url: `/docs/${provider}/ui/brush`,
       icon: <BrushIcon />,
+    },
+    {
+      name: "Tolerance",
+      url: `/docs/${provider}/ui/tolerance`,
+      icon: <ToleranceIcon />,
     },
   ];
 }

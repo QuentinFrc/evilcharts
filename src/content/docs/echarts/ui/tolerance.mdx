@@ -1,0 +1,136 @@
+---
+title: Tolerance
+description: What the series is meant to hold to — a ceiling, a floor or a corridor, and the runs that left it.
+image: /og/og-image.png
+---
+
+## Usage
+
+Compose a `<Tolerance />` inside an area or line chart to draw what the series is expected to hold
+to: a faint band over the accepted region, its bounds, and — unless `highlightBreaches` is false —
+the runs that left it repainted.
+
+One part covers a ceiling, a floor and a corridor, because they are one shape with a bound at
+infinity. `max` alone accepts everything below it, `min` alone everything above it, both together
+the interval between. There is no side to pass — which bound you give is the side — and no variant
+to pick, so the part never decides whether a region is good or bad. You declare what is accepted,
+the band paints it, the overlay marks what leaves it. What that means is yours, and lives in the
+config keys you hand it.
+
+```tsx
+import { EChartsAreaChart } from "@/components/evilcharts/charts/echarts-area-chart";
+
+<EChartsAreaChart data={data} config={chartConfig} xDataKey="hour">
+  <EChartsAreaChart.Tolerance min={2} max={8} dataKey="safe" breachKey="excursion" label="2 – 8 °C" />
+  <EChartsAreaChart.Area dataKey="degrees" variant="gradient" />
+</EChartsAreaChart>;
+```
+
+<ComponentPreview title="min / max" name="ex-tolerance-echarts-area-chart" />
+
+## One bound
+
+Give only `max` and everything below it is accepted — a ceiling. Give only `min` and everything
+above it is — a floor. The missing bound is infinity: the band runs to the edge of the plot, no line
+is drawn where there is nothing to draw, and the overlay marks what crossed the bound you did give.
+
+### A ceiling
+
+<ComponentPreview title="max={300}" name="ex-tolerance-ceiling-echarts-area-chart" />
+
+### A floor
+
+<ComponentPreview title="min={92}" name="ex-tolerance-floor-echarts-area-chart" />
+
+## Target
+
+The value aimed at, drawn as a dashed line. It does not have to sit at the middle: a range of
+2 – 8 °C aimed at 5 is not the same instruction as one aimed at 3.
+
+### With a target
+
+<ComponentPreview title="target={5}" name="ex-tolerance-target-echarts-area-chart" />
+
+## Breaches
+
+By default the runs outside the band are repainted, with a dot on each point that left it. Turn it
+off and the band and its bounds carry the reading on their own.
+
+### Without breach highlighting
+
+<ComponentPreview title="highlightBreaches={false}" name="ex-tolerance-no-breaches-echarts-area-chart" />
+
+## Color
+
+`dataKey` paints the band and its bounds, `breachKey` the runs that left. Omit them and the band
+takes the muted foreground while the departures take the plain one — quiet band, loud exceptions,
+which is the reading either way.
+
+### Without color keys
+
+<ComponentPreview title="no dataKey" name="ex-tolerance-neutral-echarts-area-chart" />
+
+## On a line chart
+
+<ComponentPreview title="line chart" name="ex-tolerance-echarts-line-chart" />
+
+## API Reference
+
+<ApiTable>
+  <ApiRow name="min" type="number" default="-Infinity">
+    Lower bound of what is accepted, in y-axis units. Omitted, the region is unbounded below.
+  </ApiRow>
+  <ApiRow name="max" type="number" default="Infinity">
+    Upper bound. Omitted, the region is unbounded above. At least one bound is required; with
+    neither, nothing is drawn and development warns. Bounds given the wrong way round describe the
+    same region and are honored as such.
+  </ApiRow>
+  <ApiRow name="target" type="number">
+    The value aimed at, drawn as a dashed line. Not necessarily the middle of the region.
+  </ApiRow>
+  <ApiRow name="dataKey" type="string">
+    Config key whose color paints the band and its bounds. Without one the band paints in the muted
+    foreground color. On the Recharts roots a config key must also be a key of the row type, so a
+    color-only entry is declared on that type.
+  </ApiRow>
+  <ApiRow name="breachKey" type="string">
+    Config key whose color paints the runs that left. Without one they paint in the foreground
+    color. It never falls back to `dataKey`: a band that reads as loudly as the departures from it
+    reads as nothing at all.
+  </ApiRow>
+  <ApiRow name="label" type="string">
+    Text set on the outer bound — the upper one when there is one, the lower one on a floor.
+  </ApiRow>
+  <ApiRow name="highlightBreaches" type="boolean" default="true">
+    Repaints the series runs outside the band, with a dot on each point that left it. The band and
+    its bounds still read without it.
+  </ApiRow>
+</ApiTable>
+
+## Notes
+
+A chart is read against one norm. Compose several `<Tolerance />` on one chart and only the first is
+drawn, identically on both providers, with a warning in development — several bands is not one norm:
+the runs outside each would repaint the series one over the other, and their colors would come from
+unrelated config entries rather than a severity ramp. An ordered ladder of levels is a different
+part.
+
+A bound outside the data range pulls the axis out to reach it — a bound you cannot see is a bound
+you cannot judge against. With both bounds the axis is also padded until the band takes up no more
+than 60% of it: a series that holds its range would otherwise set an extent equal to the band, and a
+band that fills the plot reads as the plot. A one-sided band has no width to take a share of, so it
+only gets the usual slack past its bound, and a series that roams further keeps its own scale either
+way.
+
+The band carries no border. Where it is bounded its own fill edge already delimits it; a border
+would additionally stroke the left and right edges of the plot, which say nothing, and on an open
+side it would trace the frame itself. The bound lines are what make those edges crisp at a tenth of
+an opacity, and what carry the label.
+
+A departure sits right beside the band it left, so the two colors have to stay apart. The usual
+green-against-red pairing does not: under deuteranopia it collapses to roughly 6 ΔE, and this repo's
+own dark `--chart-2` and `--destructive` sit at an identical lightness. So a departure also carries
+dots — color is never its only channel.
+
+On a stacked area chart the overlay is skipped: there a series' own value is not its plotted height,
+so a per-series departure would point at the wrong place. The band and its bounds still read.

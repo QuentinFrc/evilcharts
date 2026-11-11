@@ -40,6 +40,19 @@ export const ui: Registry["items"] = [
     ],
   },
   {
+    name: "recharts-tolerance",
+    type: "registry:component",
+    dependencies: ["recharts"],
+    registryDependencies: ["@evilcharts/recharts-chart"],
+    files: [
+      {
+        path: "ui/recharts-tolerance.tsx",
+        type: "registry:component",
+        target: TARGET_BASE_PATH + "/recharts-tolerance.tsx",
+      },
+    ],
+  },
+  {
     name: "recharts-dot",
     type: "registry:component",
     dependencies: ["recharts"],
@@ -113,6 +126,19 @@ export const ui: Registry["items"] = [
         path: "ui/echarts-legend.tsx",
         type: "registry:component",
         target: TARGET_BASE_PATH + "/echarts-legend.tsx",
+      },
+    ],
+  },
+  {
+    name: "echarts-tolerance",
+    type: "registry:component",
+    dependencies: ["echarts"],
+    registryDependencies: ["@evilcharts/echarts-chart"],
+    files: [
+      {
+        path: "ui/echarts-tolerance.tsx",
+        type: "registry:component",
+        target: TARGET_BASE_PATH + "/echarts-tolerance.tsx",
       },
     ],
   },

@@ -213,6 +213,15 @@ Examples with different settings. Change `strokeVariant` on a `<Line>` or `curve
 <ComponentPreview className="mb-0" title="glowing - gradient colors" name="ex-glowing-desktop-echarts-line-chart"  />
 <ComponentPreview title="glowing - solid colors" name="ex-glowing-mobile-echarts-line-chart"  />
 
+### Tolerance
+
+A norm the series is read against, rather than another measure: a faint band over what is
+accepted — a ceiling, a floor or the corridor between the two — its bounds, and the runs
+that left it repainted. Full props and behavior on the [Tolerance](/docs/echarts/ui/tolerance)
+page.
+
+<ComponentPreview title="min={2} max={8}" name="ex-tolerance-echarts-line-chart" />
+
 ## API Reference
 
 The chart is composed of several parts; the props below are grouped by part. Regardless of renderer, each part is declarative config the root compiles, but the API mirrors the Recharts twin one-to-one.
@@ -341,6 +350,11 @@ The category and value axes. Include `<XAxis />` for x-axis labels and `<YAxis /
 <ApiHeading>Grid</ApiHeading>
 
 The background grid lines. Include it to render the dashed horizontal split lines; omit it and they don't draw. Takes no props.
+
+<ApiHeading>Tolerance</ApiHeading>
+
+The norm the series is read against. Include it to draw the band; omit it and nothing is
+drawn. Its props are documented once, on the [Tolerance](/docs/echarts/ui/tolerance) page.
 
 <ApiHeading>Tooltip</ApiHeading>
 
