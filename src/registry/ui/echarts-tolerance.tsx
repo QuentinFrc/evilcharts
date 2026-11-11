@@ -39,6 +39,7 @@ export interface ToleranceProps {
   breachKey?: string; // config key whose color paints the runs outside it
   label?: string; // text set on the outer bound
   highlightBreaches?: boolean; // repaints the runs that left (default true)
+  for?: string; // the series this norm judges — omitted, it judges every series
 }
 
 /**
@@ -70,6 +71,7 @@ export type ToleranceSlot = {
   breachKey: string | null;
   label?: string;
   highlightBreaches: boolean;
+  series: string | null; // null = the whole chart
 };
 
 export const NO_TOLERANCE: ToleranceSlot = {
@@ -80,7 +82,37 @@ export const NO_TOLERANCE: ToleranceSlot = {
   dataKey: null,
   breachKey: null,
   highlightBreaches: true,
+  series: null,
 };
+
+/**
+ * Every composed <Tolerance>, in order, minus the ones that judge something
+ * already judged.
+ *
+ * Two norms over the SAME series cannot both be read — the second band would
+ * sit on the first and the runs outside each would repaint one another — so the
+ * first wins and development warns. Two norms over DIFFERENT series are a
+ * different thing entirely: each belongs to its own line, and the chart simply
+ * carries more than one subject.
+ */
+export function toleranceSlotsFrom(list: ToleranceProps[]): ToleranceSlot[] {
+  const slots: ToleranceSlot[] = [];
+  const taken = new Set<string>();
+
+  for (const props of list) {
+    const slot = toleranceSlotFrom(props);
+    if (!slot.present) continue;
+    const scope = slot.series ?? "";
+    if (taken.has(scope)) {
+      warnDuplicateTolerance(slot.series);
+      continue;
+    }
+    taken.add(scope);
+    slots.push(slot);
+  }
+
+  return slots;
+}
 
 /** Collects a composed <Tolerance>'s props into the slot the builders read. */
 export function toleranceSlotFrom(props: ToleranceProps): ToleranceSlot {
@@ -102,27 +134,31 @@ export function toleranceSlotFrom(props: ToleranceProps): ToleranceSlot {
     breachKey: props.breachKey ?? null,
     label: props.label,
     highlightBreaches: props.highlightBreaches ?? true,
+    series: props.for ?? null,
   };
 }
 
 /**
- * Several composed <Tolerance> children collapse to the FIRST, identically on
- * both providers — a chart that silently kept a different one per renderer is
- * the worst kind of divergence, since nothing in the output says which.
+ * Two norms over the same series collapse to the FIRST, identically on both
+ * providers — a chart that silently kept a different one per renderer is the
+ * worst kind of divergence, since nothing in the output says which.
  *
- * It warns rather than drawing the rest because several bands is not one norm:
- * the runs outside each would repaint the series one on top of the other, and
- * the colors would come from unrelated config keys instead of a severity ramp.
- * An ordered ladder of levels is a different part.
+ * Several norms over DIFFERENT series are allowed and drawn. What they cannot
+ * do is share a subject: the runs outside each would repaint the same line one
+ * on top of the other, and the reader would have no way to tell which norm the
+ * paint belongs to.
  */
-let warnedExtraTolerances = false;
-export function warnExtraTolerances(count: number): void {
-  if (count < 2 || warnedExtraTolerances) return;
+let warnedDuplicate = false;
+export function warnDuplicateTolerance(series: string | null): void {
+  if (warnedDuplicate) return;
   if (typeof process !== "undefined" && process.env?.NODE_ENV === "production") return;
-  warnedExtraTolerances = true;
+  warnedDuplicate = true;
   console.warn(
-    `[evilcharts] ${count} <Tolerance> children composed on one chart; only the first is drawn. ` +
-      "A chart is read against a single norm.",
+    series
+      ? `[evilcharts] two <Tolerance> children for \`${series}\`; only the first is drawn. ` +
+          "A series is read against a single norm."
+      : "[evilcharts] two unscoped <Tolerance> children; only the first is drawn. " +
+          "Give each a `for` to judge a different series.",
   );
 }
 
@@ -163,25 +199,43 @@ export function toleranceBreachColor(slot: ToleranceSlot, resolved: ResolvedColo
  *
  * Both are `undefined` when nothing is composed.
  */
-export function toleranceAxisBounds(slot: ToleranceSlot): {
+export function toleranceAxisBounds(slots: ToleranceSlot[]): {
   min?: (extent: { min: number; max: number }) => number;
   max?: (extent: { min: number; max: number }) => number;
 } {
-  if (!slot.present) return {};
+  if (slots.length === 0) return {};
+
+  // Every finite bound of every norm has to be on the axis: one that is not
+  // paints nothing, and a norm you cannot see is a norm you cannot judge
+  // against. The widest need wins on each side.
+  const anyLow = slots.some((slot) => Number.isFinite(slot.min));
+  const anyHigh = slots.some((slot) => Number.isFinite(slot.max));
+  const reach = (extent: { min: number; max: number }) => {
+    let low = extent.min;
+    let high = extent.max;
+    let pad = 0;
+    for (const slot of slots) {
+      const e = toleranceExtent(slot, extent);
+      low = Math.min(low, e.low);
+      high = Math.max(high, e.high);
+      pad = Math.max(pad, e.pad);
+    }
+    return { low, high, pad };
+  };
 
   return {
-    ...(Number.isFinite(slot.min)
+    ...(anyLow
       ? {
           min: (extent: { min: number; max: number }) => {
-            const { low, high, pad } = toleranceExtent(slot, extent);
+            const { low, high, pad } = reach(extent);
             return toleranceNice(low - pad, high - low + pad * 2, -1);
           },
         }
       : {}),
-    ...(Number.isFinite(slot.max)
+    ...(anyHigh
       ? {
           max: (extent: { min: number; max: number }) => {
-            const { low, high, pad } = toleranceExtent(slot, extent);
+            const { low, high, pad } = reach(extent);
             return toleranceNice(high + pad, high - low + pad * 2, 1);
           },
         }
@@ -237,6 +291,11 @@ function toleranceNice(value: number, span: number, direction: -1 | 1): number {
   return Number(snapped.toFixed(decimals));
 }
 
+/** The norm that judges every series, if one was composed. */
+function unscopedOf(slots: ToleranceSlot[]): ToleranceSlot | null {
+  return slots.find((slot) => slot.series === null) ?? null;
+}
+
 /** An infinite bound, as the painter has to spell it. */
 function paintBound(value: number, fallback: number): number {
   return Number.isFinite(value) ? value : fallback;
@@ -254,16 +313,27 @@ function paintBound(value: number, fallback: number): number {
  * Only FINITE bounds get one: there is no line to draw at infinity.
  */
 export function buildToleranceMarks(
-  slot: ToleranceSlot,
+  slots: ToleranceSlot[],
   resolved: ResolvedColors,
+  { seriesKey, isFirst }: { seriesKey: string; isFirst: boolean },
 ): Pick<LineSeriesOption, "markArea" | "markLine"> {
-  if (!slot.present) return {};
+  // A scoped norm rides its own series. An unscoped one judges the whole chart,
+  // so it rides the first — attaching it to each would stack the band on itself.
+  const slot = slots.find((s) => s.series === seriesKey) ?? (isFirst ? unscopedOf(slots) : null);
+  if (!slot || !slot.present) return {};
 
+  // Several norms on one axis cannot all be filled. Two translucent bands make
+  // a third tint where they meet that belongs to neither, and a reader cannot
+  // tell which region they are in. The bounds carry the reading on their own,
+  // so past the first norm the fill is dropped and the lines do the work.
+  const filled = slots.length < 2;
   const color = toleranceColor(slot, resolved);
   const boundStyle = {
     color: withAlpha(color, TOLERANCE_LINE_OPACITY),
     width: TOLERANCE_LINE_WIDTH,
-    type: "solid" as const,
+    // Solid, a lone bound reads as a series. Without a fill behind it to say
+    // otherwise, it has to look like a reference, and dashes are what say that.
+    type: (filled ? "solid" : "dashed") as "solid" | "dashed",
   };
   // The label rides the outer bound — the upper one when there is one, since
   // that is where a reader looks first, and the lower one on a floor.
@@ -284,16 +354,20 @@ export function buildToleranceMarks(
   const bounds = [slot.min, slot.max].filter((bound) => Number.isFinite(bound));
 
   return {
-    markArea: {
-      silent: true,
-      itemStyle: { color: withAlpha(color, TOLERANCE_BAND_OPACITY) },
-      data: [
-        [
-          { yAxis: paintBound(slot.min, -TOLERANCE_EXTENT) },
-          { yAxis: paintBound(slot.max, TOLERANCE_EXTENT) },
-        ],
-      ],
-    },
+    ...(filled
+      ? {
+          markArea: {
+            silent: true,
+            itemStyle: { color: withAlpha(color, TOLERANCE_BAND_OPACITY) },
+            data: [
+              [
+                { yAxis: paintBound(slot.min, -TOLERANCE_EXTENT) },
+                { yAxis: paintBound(slot.max, TOLERANCE_EXTENT) },
+              ],
+            ],
+          } as NonNullable<LineSeriesOption["markArea"]>,
+        }
+      : {}),
     markLine: {
       silent: true,
       symbol: "none",
@@ -347,24 +421,29 @@ export type ToleranceSeries = {
  * point at the wrong place. The band and its bounds still read there.
  */
 export function buildToleranceBreachSeries({
-  slot,
+  slots,
   resolved,
   series,
   valuesFor,
   allowBreaches = true,
 }: {
-  slot: ToleranceSlot;
+  slots: ToleranceSlot[];
   resolved: ResolvedColors;
   series: ToleranceSeries[];
   valuesFor: (key: string) => (number | null)[];
   allowBreaches?: boolean;
 }): LineSeriesOption[] {
-  if (!slot.present || !slot.highlightBreaches || !allowBreaches) return [];
+  if (slots.length === 0 || !allowBreaches) return [];
 
-  const color = toleranceBreachColor(slot, resolved);
-  const { min, max } = slot;
+  const unscoped = unscopedOf(slots);
 
   return series.flatMap(({ key, curve, z }): LineSeriesOption[] => {
+    // The norm that judges THIS series: its own, or the chart-wide one.
+    const slot = slots.find((s) => s.series === key) ?? unscoped;
+    if (!slot || !slot.highlightBreaches) return [];
+
+    const color = toleranceBreachColor(slot, resolved);
+    const { min, max } = slot;
     const values = valuesFor(key);
     const left = values.map((v) => v !== null && (v < min || v > max));
     if (!left.some(Boolean)) return [];

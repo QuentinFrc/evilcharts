@@ -745,24 +745,6 @@ export const Index: Record<string, any> = {
     categories: undefined,
     meta: undefined,
   },
-  "ex-tolerance-step-echarts-area-chart": {
-    name: "ex-tolerance-step-echarts-area-chart",
-    description: "",
-    type: "registry:block",
-    registryDependencies: ["@evilcharts/echarts-area-chart"],
-    files: [{
-      path: "@/registry/examples/echarts/ex-tolerance-step-echarts-area-chart.tsx",
-      type: "registry:block",
-      target: ""
-    }],
-    component: React.lazy(async () => {
-      const mod = await import("@/registry/examples/echarts/ex-tolerance-step-echarts-area-chart.tsx")
-      const exportName = Object.keys(mod).find(key => typeof mod[key] === 'function' || typeof mod[key] === 'object') || item.name
-      return { default: mod.default || mod[exportName] }
-    }),
-    categories: undefined,
-    meta: undefined,
-  },
   "ex-tolerance-brush-echarts-area-chart": {
     name: "ex-tolerance-brush-echarts-area-chart",
     description: "",
@@ -775,24 +757,6 @@ export const Index: Record<string, any> = {
     }],
     component: React.lazy(async () => {
       const mod = await import("@/registry/examples/echarts/ex-tolerance-brush-echarts-area-chart.tsx")
-      const exportName = Object.keys(mod).find(key => typeof mod[key] === 'function' || typeof mod[key] === 'object') || item.name
-      return { default: mod.default || mod[exportName] }
-    }),
-    categories: undefined,
-    meta: undefined,
-  },
-  "ex-tolerance-stacked-echarts-area-chart": {
-    name: "ex-tolerance-stacked-echarts-area-chart",
-    description: "",
-    type: "registry:block",
-    registryDependencies: ["@evilcharts/echarts-area-chart"],
-    files: [{
-      path: "@/registry/examples/echarts/ex-tolerance-stacked-echarts-area-chart.tsx",
-      type: "registry:block",
-      target: ""
-    }],
-    component: React.lazy(async () => {
-      const mod = await import("@/registry/examples/echarts/ex-tolerance-stacked-echarts-area-chart.tsx")
       const exportName = Object.keys(mod).find(key => typeof mod[key] === 'function' || typeof mod[key] === 'object') || item.name
       return { default: mod.default || mod[exportName] }
     }),
@@ -1261,6 +1225,24 @@ export const Index: Record<string, any> = {
     }],
     component: React.lazy(async () => {
       const mod = await import("@/registry/examples/echarts/ex-tolerance-echarts-line-chart.tsx")
+      const exportName = Object.keys(mod).find(key => typeof mod[key] === 'function' || typeof mod[key] === 'object') || item.name
+      return { default: mod.default || mod[exportName] }
+    }),
+    categories: undefined,
+    meta: undefined,
+  },
+  "ex-tolerance-subjects-echarts-line-chart": {
+    name: "ex-tolerance-subjects-echarts-line-chart",
+    description: "",
+    type: "registry:block",
+    registryDependencies: ["@evilcharts/echarts-line-chart"],
+    files: [{
+      path: "@/registry/examples/echarts/ex-tolerance-subjects-echarts-line-chart.tsx",
+      type: "registry:block",
+      target: ""
+    }],
+    component: React.lazy(async () => {
+      const mod = await import("@/registry/examples/echarts/ex-tolerance-subjects-echarts-line-chart.tsx")
       const exportName = Object.keys(mod).find(key => typeof mod[key] === 'function' || typeof mod[key] === 'object') || item.name
       return { default: mod.default || mod[exportName] }
     }),
@@ -3031,24 +3013,6 @@ export const Index: Record<string, any> = {
     categories: undefined,
     meta: undefined,
   },
-  "ex-tolerance-step-area-chart": {
-    name: "ex-tolerance-step-area-chart",
-    description: "",
-    type: "registry:block",
-    registryDependencies: ["@evilcharts/recharts-area-chart"],
-    files: [{
-      path: "@/registry/examples/recharts/ex-tolerance-step-area-chart.tsx",
-      type: "registry:block",
-      target: ""
-    }],
-    component: React.lazy(async () => {
-      const mod = await import("@/registry/examples/recharts/ex-tolerance-step-area-chart.tsx")
-      const exportName = Object.keys(mod).find(key => typeof mod[key] === 'function' || typeof mod[key] === 'object') || item.name
-      return { default: mod.default || mod[exportName] }
-    }),
-    categories: undefined,
-    meta: undefined,
-  },
   "ex-tolerance-brush-area-chart": {
     name: "ex-tolerance-brush-area-chart",
     description: "",
@@ -3061,24 +3025,6 @@ export const Index: Record<string, any> = {
     }],
     component: React.lazy(async () => {
       const mod = await import("@/registry/examples/recharts/ex-tolerance-brush-area-chart.tsx")
-      const exportName = Object.keys(mod).find(key => typeof mod[key] === 'function' || typeof mod[key] === 'object') || item.name
-      return { default: mod.default || mod[exportName] }
-    }),
-    categories: undefined,
-    meta: undefined,
-  },
-  "ex-tolerance-stacked-area-chart": {
-    name: "ex-tolerance-stacked-area-chart",
-    description: "",
-    type: "registry:block",
-    registryDependencies: ["@evilcharts/recharts-area-chart"],
-    files: [{
-      path: "@/registry/examples/recharts/ex-tolerance-stacked-area-chart.tsx",
-      type: "registry:block",
-      target: ""
-    }],
-    component: React.lazy(async () => {
-      const mod = await import("@/registry/examples/recharts/ex-tolerance-stacked-area-chart.tsx")
       const exportName = Object.keys(mod).find(key => typeof mod[key] === 'function' || typeof mod[key] === 'object') || item.name
       return { default: mod.default || mod[exportName] }
     }),
@@ -3547,6 +3493,24 @@ export const Index: Record<string, any> = {
     }],
     component: React.lazy(async () => {
       const mod = await import("@/registry/examples/recharts/ex-tolerance-line-chart.tsx")
+      const exportName = Object.keys(mod).find(key => typeof mod[key] === 'function' || typeof mod[key] === 'object') || item.name
+      return { default: mod.default || mod[exportName] }
+    }),
+    categories: undefined,
+    meta: undefined,
+  },
+  "ex-tolerance-subjects-line-chart": {
+    name: "ex-tolerance-subjects-line-chart",
+    description: "",
+    type: "registry:block",
+    registryDependencies: ["@evilcharts/recharts-line-chart"],
+    files: [{
+      path: "@/registry/examples/recharts/ex-tolerance-subjects-line-chart.tsx",
+      type: "registry:block",
+      target: ""
+    }],
+    component: React.lazy(async () => {
+      const mod = await import("@/registry/examples/recharts/ex-tolerance-subjects-line-chart.tsx")
       const exportName = Object.keys(mod).find(key => typeof mod[key] === 'function' || typeof mod[key] === 'object') || item.name
       return { default: mod.default || mod[exportName] }
     }),

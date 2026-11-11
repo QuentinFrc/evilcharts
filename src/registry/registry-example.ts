@@ -113,34 +113,12 @@ export const examples: Registry["items"] = [
     ],
   },
   {
-    name: "ex-tolerance-step-echarts-area-chart",
-    registryDependencies: ["@evilcharts/echarts-area-chart"],
-    type: "registry:block",
-    files: [
-      {
-        path: "examples/echarts/ex-tolerance-step-echarts-area-chart.tsx",
-        type: "registry:block",
-      },
-    ],
-  },
-  {
     name: "ex-tolerance-brush-echarts-area-chart",
     registryDependencies: ["@evilcharts/echarts-area-chart"],
     type: "registry:block",
     files: [
       {
         path: "examples/echarts/ex-tolerance-brush-echarts-area-chart.tsx",
-        type: "registry:block",
-      },
-    ],
-  },
-  {
-    name: "ex-tolerance-stacked-echarts-area-chart",
-    registryDependencies: ["@evilcharts/echarts-area-chart"],
-    type: "registry:block",
-    files: [
-      {
-        path: "examples/echarts/ex-tolerance-stacked-echarts-area-chart.tsx",
         type: "registry:block",
       },
     ],
@@ -428,6 +406,17 @@ export const examples: Registry["items"] = [
     files: [
       {
         path: "examples/echarts/ex-tolerance-echarts-line-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
+    name: "ex-tolerance-subjects-echarts-line-chart",
+    registryDependencies: ["@evilcharts/echarts-line-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/echarts/ex-tolerance-subjects-echarts-line-chart.tsx",
         type: "registry:block",
       },
     ],
@@ -1518,34 +1507,12 @@ export const examples: Registry["items"] = [
     ],
   },
   {
-    name: "ex-tolerance-step-area-chart",
-    registryDependencies: ["@evilcharts/recharts-area-chart"],
-    type: "registry:block",
-    files: [
-      {
-        path: "examples/recharts/ex-tolerance-step-area-chart.tsx",
-        type: "registry:block",
-      },
-    ],
-  },
-  {
     name: "ex-tolerance-brush-area-chart",
     registryDependencies: ["@evilcharts/recharts-area-chart"],
     type: "registry:block",
     files: [
       {
         path: "examples/recharts/ex-tolerance-brush-area-chart.tsx",
-        type: "registry:block",
-      },
-    ],
-  },
-  {
-    name: "ex-tolerance-stacked-area-chart",
-    registryDependencies: ["@evilcharts/recharts-area-chart"],
-    type: "registry:block",
-    files: [
-      {
-        path: "examples/recharts/ex-tolerance-stacked-area-chart.tsx",
         type: "registry:block",
       },
     ],
@@ -1845,6 +1812,17 @@ export const examples: Registry["items"] = [
     files: [
       {
         path: "examples/recharts/ex-tolerance-line-chart.tsx",
+        type: "registry:block",
+      },
+    ],
+  },
+  {
+    name: "ex-tolerance-subjects-line-chart",
+    registryDependencies: ["@evilcharts/recharts-line-chart"],
+    type: "registry:block",
+    files: [
+      {
+        path: "examples/recharts/ex-tolerance-subjects-line-chart.tsx",
         type: "registry:block",
       },
     ],

@@ -39,6 +39,7 @@ export interface ToleranceProps {
   breachKey?: string; // config key whose color paints the runs outside it
   label?: string; // text set on the outer bound
   highlightBreaches?: boolean; // repaints the runs that left (default true)
+  for?: string; // the series this norm judges — omitted, it judges every series
 }
 
 /**
@@ -69,6 +70,7 @@ export type ToleranceSlot = {
   breachKey: string | null;
   label?: string;
   highlightBreaches: boolean;
+  series: string | null; // null = the whole chart
 };
 
 export const NO_TOLERANCE: ToleranceSlot = {
@@ -79,7 +81,31 @@ export const NO_TOLERANCE: ToleranceSlot = {
   dataKey: null,
   breachKey: null,
   highlightBreaches: true,
+  series: null,
 };
+
+/**
+ * Every composed <Tolerance>, in order, minus the ones that judge something
+ * already judged. Identical to the ECharts twin, down to the warning.
+ */
+export function toleranceSlotsFrom(list: ToleranceProps[]): ToleranceSlot[] {
+  const slots: ToleranceSlot[] = [];
+  const taken = new Set<string>();
+
+  for (const props of list) {
+    const slot = toleranceSlotFrom(props);
+    if (!slot.present) continue;
+    const scope = slot.series ?? "";
+    if (taken.has(scope)) {
+      warnDuplicateTolerance(slot.series);
+      continue;
+    }
+    taken.add(scope);
+    slots.push(slot);
+  }
+
+  return slots;
+}
 
 /** Collects a composed <Tolerance>'s props into the slot the hook reads. */
 export function toleranceSlotFrom(props: ToleranceProps): ToleranceSlot {
@@ -101,27 +127,25 @@ export function toleranceSlotFrom(props: ToleranceProps): ToleranceSlot {
     breachKey: props.breachKey ?? null,
     label: props.label,
     highlightBreaches: props.highlightBreaches ?? true,
+    series: props.for ?? null,
   };
 }
 
 /**
- * Several composed <Tolerance> children collapse to the FIRST, identically on
- * both providers — a chart that silently kept a different one per renderer is
- * the worst kind of divergence, since nothing in the output says which.
- *
- * It warns rather than drawing the rest because several bands is not one norm:
- * the runs outside each would repaint the series one on top of the other, and
- * the colors would come from unrelated config keys instead of a severity ramp.
- * An ordered ladder of levels is a different part.
+ * Two norms over the same series collapse to the FIRST, identically on both
+ * providers. Several norms over DIFFERENT series are allowed and drawn.
  */
-let warnedExtraTolerances = false;
-export function warnExtraTolerances(count: number): void {
-  if (count < 2 || warnedExtraTolerances) return;
+let warnedDuplicate = false;
+export function warnDuplicateTolerance(series: string | null): void {
+  if (warnedDuplicate) return;
   if (typeof process !== "undefined" && process.env?.NODE_ENV === "production") return;
-  warnedExtraTolerances = true;
+  warnedDuplicate = true;
   console.warn(
-    `[evilcharts] ${count} <Tolerance> children composed on one chart; only the first is drawn. ` +
-      "A chart is read against a single norm.",
+    series
+      ? `[evilcharts] two <Tolerance> children for \`${series}\`; only the first is drawn. ` +
+          "A series is read against a single norm."
+      : "[evilcharts] two unscoped <Tolerance> children; only the first is drawn. " +
+          "Give each a `for` to judge a different series.",
   );
 }
 
@@ -219,12 +243,12 @@ export type ToleranceOverlayProps = {
 };
 
 export type ToleranceParts = {
-  band: ReactElement | null;
+  bands: ReactElement[];
   lines: ReactElement[];
   overlays: ToleranceOverlayProps[];
 };
 
-const EMPTY: ToleranceParts = { band: null, lines: [], overlays: [] };
+const EMPTY: ToleranceParts = { bands: [], lines: [], overlays: [] };
 
 /**
  * The band, its bounds, the optional target, and the overlays for the runs that
@@ -232,7 +256,7 @@ const EMPTY: ToleranceParts = { band: null, lines: [], overlays: [] };
  * series, the lines and overlays over it.
  */
 export function useToleranceParts({
-  slot,
+  slots,
   config,
   data,
   seriesKeys,
@@ -240,7 +264,7 @@ export function useToleranceParts({
   isLoading,
   allowBreaches = true,
 }: {
-  slot: ToleranceSlot;
+  slots: ToleranceSlot[];
   config: ChartConfig;
   data: Record<string, unknown>[];
   seriesKeys: string[];
@@ -251,25 +275,32 @@ export function useToleranceParts({
   allowBreaches?: boolean;
 }): ToleranceParts {
   return useMemo(() => {
-    if (!slot.present || isLoading) return EMPTY;
-
-    const color = colorVar(slot.dataKey, config, "var(--color-muted-foreground)");
-    const breachColor = colorVar(slot.breachKey, config, "var(--color-foreground)");
+    if (slots.length === 0 || isLoading) return EMPTY;
 
     const plotted = seriesKeys.flatMap((key) =>
       data.map((row) => Number(row[key])).filter((v) => Number.isFinite(v)),
     );
-    const { low, high, pad } = toleranceExtent(slot, plotted);
+
+    // One domain has to hold every norm: the widest need on each side wins.
+    let low = Number.POSITIVE_INFINITY;
+    let high = Number.NEGATIVE_INFINITY;
+    let pad = 0;
+    for (const slot of slots) {
+      const e = toleranceExtent(slot, plotted);
+      low = Math.min(low, e.low);
+      high = Math.max(high, e.high);
+      pad = Math.max(pad, e.pad);
+    }
     const breadth = high - low + pad * 2;
     const floor = toleranceNice(low - pad, breadth, -1);
     const ceiling = toleranceNice(high + pad, breadth, 1);
     const reach = Math.max(high - low, Math.abs(high) || 1) * TOLERANCE_OPEN_REACH;
 
-    // Unpainted, and the reason an open side works at all: it fixes the axis
-    // where the band is allowed to end. A ReferenceArea cannot take an infinite
+    // Unpainted, and the reason an open side works at all: it fixes the domain
+    // where a band is allowed to end. A ReferenceArea cannot take an infinite
     // corner — `extendDomain` would chase it — so an open side paints to the
     // plot edge instead, and this is what puts that edge at a known value.
-    const breathing = (
+    const lines: ReactElement[] = [
       <ReferenceArea
         key="__tolerance-breathing"
         y1={floor}
@@ -277,72 +308,90 @@ export function useToleranceParts({
         ifOverflow="extendDomain"
         fill="none"
         stroke="none"
-      />
-    );
+      />,
+    ];
 
-    // An open side paints to the plot EDGE, and `hidden` is what puts it there:
-    // the corner goes far out of range and Recharts clips it, the way ECharts
-    // clips a markArea. `extendDomain` would chase the sentinel instead, and
-    // stopping at `floor`/`ceiling` would leave the band short wherever the
-    // chart's own domain reaches further — a 0-based area chart being the usual
-    // case. `breathing` above has already brought every finite bound in range.
-    const band = (
-      <ReferenceArea
-        key="__tolerance-band"
-        y1={Number.isFinite(slot.min) ? slot.min : low - reach}
-        y2={Number.isFinite(slot.max) ? slot.max : high + reach}
-        ifOverflow="hidden"
-        fill={color}
-        fillOpacity={TOLERANCE_BAND_OPACITY}
-        stroke="none"
-      />
-    );
+    // Several norms on one axis cannot all be filled: two translucent regions
+    // make a third tint where they meet that belongs to neither, and a reader
+    // cannot tell which region they are in. Past the first, the bounds carry
+    // the reading alone — dashed, so a lone line does not read as a series.
+    const filled = slots.length < 2;
+    const bands: ReactElement[] = [];
 
-    // There is no line to draw at infinity, and the label rides the outer bound
-    // — the upper one when there is one, since that is where a reader looks
-    // first, and the lower one on a floor.
-    const labelled = Number.isFinite(slot.max) ? slot.max : slot.min;
-    const bound = (y: number, which: "min" | "max") => (
-      <ReferenceLine
-        key={`__tolerance-${which}`}
-        y={y}
-        ifOverflow="extendDomain"
-        stroke={color}
-        strokeOpacity={TOLERANCE_LINE_OPACITY}
-        strokeWidth={TOLERANCE_LINE_WIDTH}
-        label={
-          slot.label && y === labelled
-            ? {
-                value: slot.label,
-                position: which === "max" ? "insideTopLeft" : "insideBottomLeft",
-                fill: color,
-                fontSize: 10,
-              }
-            : undefined
-        }
-      />
-    );
+    slots.forEach((slot, i) => {
+      const color = colorVar(slot.dataKey, config, "var(--color-muted-foreground)");
 
-    const lines: ReactElement[] = [breathing];
-    if (Number.isFinite(slot.min)) lines.push(bound(slot.min, "min"));
-    if (Number.isFinite(slot.max)) lines.push(bound(slot.max, "max"));
-    if (slot.target !== null) {
-      lines.push(
+      if (filled) {
+        // An open side paints to the plot EDGE, and `hidden` is what puts it
+        // there: the corner goes far out of range and Recharts clips it, the
+        // way ECharts clips a markArea. `extendDomain` would chase the
+        // sentinel instead, and stopping at floor/ceiling would leave the band
+        // short wherever the chart's own domain reaches further.
+        bands.push(
+          <ReferenceArea
+            key={`__tolerance-band-${i}`}
+            y1={Number.isFinite(slot.min) ? slot.min : low - reach}
+            y2={Number.isFinite(slot.max) ? slot.max : high + reach}
+            ifOverflow="hidden"
+            fill={color}
+            fillOpacity={TOLERANCE_BAND_OPACITY}
+            stroke="none"
+          />,
+        );
+      }
+
+      // There is no line to draw at infinity, and the label rides the outer
+      // bound — the upper one when there is one, the lower one on a floor.
+      const labelled = Number.isFinite(slot.max) ? slot.max : slot.min;
+      const bound = (y: number, which: "min" | "max") => (
         <ReferenceLine
-          key="__tolerance-target"
-          y={slot.target}
+          key={`__tolerance-${which}-${i}`}
+          y={y}
           ifOverflow="extendDomain"
           stroke={color}
-          strokeOpacity={TOLERANCE_TARGET_OPACITY}
-          strokeWidth={1}
-          strokeDasharray="4 4"
-        />,
+          strokeOpacity={TOLERANCE_LINE_OPACITY}
+          strokeWidth={TOLERANCE_LINE_WIDTH}
+          strokeDasharray={filled ? undefined : "5 4"}
+          label={
+            slot.label && y === labelled
+              ? {
+                  value: slot.label,
+                  position: which === "max" ? "insideTopLeft" : "insideBottomLeft",
+                  fill: color,
+                  fontSize: 10,
+                }
+              : undefined
+          }
+        />
       );
-    }
 
-    if (!slot.highlightBreaches || !allowBreaches) return { band, lines, overlays: [] };
+      if (Number.isFinite(slot.min)) lines.push(bound(slot.min, "min"));
+      if (Number.isFinite(slot.max)) lines.push(bound(slot.max, "max"));
+      if (slot.target !== null) {
+        lines.push(
+          <ReferenceLine
+            key={`__tolerance-target-${i}`}
+            y={slot.target}
+            ifOverflow="extendDomain"
+            stroke={color}
+            strokeOpacity={TOLERANCE_TARGET_OPACITY}
+            strokeWidth={1}
+            strokeDasharray="4 4"
+          />,
+        );
+      }
+    });
+
+    if (!allowBreaches) return { bands, lines, overlays: [] };
+
+    const unscoped = slots.find((slot) => slot.series === null) ?? null;
 
     const overlays = seriesKeys.flatMap((key): ToleranceOverlayProps[] => {
+      // The norm that judges THIS series: its own, or the chart-wide one.
+      const slot = slots.find((s) => s.series === key) ?? unscoped;
+      if (!slot || !slot.highlightBreaches) return [];
+
+      const breachColor = colorVar(slot.breachKey, config, "var(--color-foreground)");
       const values = data.map((row) => (row[key] == null ? null : Number(row[key]) || 0));
       // No special case for an open side: nothing is ever below -Infinity.
       const left = values.map((v) => v !== null && (v < slot.min || v > slot.max));
@@ -389,6 +438,6 @@ export function useToleranceParts({
       ];
     });
 
-    return { band, lines, overlays };
-  }, [slot, config, data, seriesKeys, seriesCurves, isLoading, allowBreaches]);
+    return { bands, lines, overlays };
+  }, [slots, config, data, seriesKeys, seriesCurves, isLoading, allowBreaches]);
 }

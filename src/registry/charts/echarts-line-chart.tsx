@@ -13,13 +13,11 @@ import {
   type ResolvedColors,
 } from "@/registry/ui/echarts-chart";
 import {
-  NO_TOLERANCE,
   Tolerance,
   buildToleranceBreachSeries,
   buildToleranceMarks,
   toleranceAxisBounds,
-  toleranceSlotFrom,
-  warnExtraTolerances,
+  toleranceSlotsFrom,
   type ToleranceProps,
   type ToleranceSlot,
 } from "@/registry/ui/echarts-tolerance";
@@ -172,7 +170,6 @@ const LOADING_SHIMMER_BAND = 0.2; // window half-width, fraction of chart width
 const LOADING_SHIMMER_FEATHER = 0.2; // eased edge softening of the clip window
 const BRUSH_STROKE_OPACITY = 0.5; // mini-chart series stroke (evil-brush "line" variant)
 const BRUSH_FILLER_OPACITY = 0; // selected-range wash — evil-brush draws none
-
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Public types
@@ -362,7 +359,7 @@ type CollectedConfig = {
   tooltip: TooltipSlot;
   legend: LegendSlot;
   brush: BrushSlot;
-  tolerance: ToleranceSlot;
+  tolerance: ToleranceSlot[];
 };
 
 function collectConfig(children: ReactNode): CollectedConfig {
@@ -385,8 +382,7 @@ function collectConfig(children: ReactNode): CollectedConfig {
     isClickable: false,
   };
   let brush: BrushSlot = { present: false };
-  let tolerance: ToleranceSlot = NO_TOLERANCE;
-  let toleranceCount = 0;
+  const toleranceProps: ToleranceProps[] = [];
 
   Children.forEach(children, (child) => {
     if (!isValidElement(child)) return;
@@ -467,11 +463,10 @@ function collectConfig(children: ReactNode): CollectedConfig {
       };
     } else if (type === Tolerance) {
       const props = child.props as ToleranceProps;
-      toleranceCount += 1;
-      if (!tolerance.present) tolerance = toleranceSlotFrom(props);
+      toleranceProps.push(props);
     }
   });
-  warnExtraTolerances(toleranceCount);
+  const tolerance = toleranceSlotsFrom(toleranceProps);
 
   return { lines, xAxis, yAxis, showGrid, tooltip, legend, brush, tolerance };
 }
@@ -679,7 +674,7 @@ type OptionBuildContext = {
   selectedDataKey: string | null;
   hasSelection: boolean;
   showGrid: boolean;
-  toleranceSlot: ToleranceSlot;
+  toleranceSlot: ToleranceSlot[];
   xAxisSlot: XAxisSlot;
   yAxisSlot: YAxisSlot;
   tooltipSlot: TooltipSlot;
@@ -1297,15 +1292,23 @@ function buildLineSeries(ctx: OptionBuildContext): LineSeriesOption[] {
     return [...glowSeries, mainSeries, bufferSeries];
   });
 
-  // The band and the line annotate the axis, not a series: attach them once, to
-  // whichever series came out first.
-  const marks = buildToleranceMarks(ctx.toleranceSlot, resolved);
-  if (series.length > 0 && (marks.markArea || marks.markLine)) Object.assign(series[0], marks);
+  // A norm scoped with `for` rides the series it judges; an unscoped one rides
+  // the first, since it annotates the axis rather than any one line.
+  lines.forEach((line, i) => {
+    // The main series carries the dataKey as its id.
+    const host = series.find((entry) => entry.id === line.dataKey);
+    if (!host) return;
+    const marks = buildToleranceMarks(ctx.toleranceSlot, resolved, {
+      seriesKey: line.dataKey,
+      isFirst: i === 0,
+    });
+    if (marks.markArea || marks.markLine) Object.assign(host, marks);
+  });
 
   return [
     ...series,
     ...buildToleranceBreachSeries({
-      slot: ctx.toleranceSlot,
+      slots: ctx.toleranceSlot,
       resolved,
       series: lines.map((line) => ({
         key: line.dataKey,
@@ -1490,11 +1493,11 @@ export function EChartsLineChart<TData extends Record<string, unknown>>({
   // the DOM unless they are named here — without this the band and the runs
   // that left it silently fall back to their tokens.
   const resolvedKeys = useMemo(() => {
-    const extra = [toleranceSlot.dataKey, toleranceSlot.breachKey].filter(
-      (key): key is string => !!key && !seriesKeys.includes(key),
-    );
+    const extra = toleranceSlot
+      .flatMap((slot) => [slot.dataKey, slot.breachKey])
+      .filter((key): key is string => !!key && !seriesKeys.includes(key));
     return extra.length > 0 ? [...seriesKeys, ...new Set(extra)] : seriesKeys;
-  }, [seriesKeys, toleranceSlot.dataKey, toleranceSlot.breachKey]);
+  }, [seriesKeys, toleranceSlot]);
 
   // x category key: <XAxis dataKey> → root xDataKey → first data column no <Line> claims.
   const xCategoryKey = useMemo(() => {

@@ -31,11 +31,9 @@ import {
   YAxis as RechartsYAxis,
 } from "recharts";
 import {
-  NO_TOLERANCE,
   Tolerance,
-  toleranceSlotFrom,
   useToleranceParts,
-  warnExtraTolerances,
+  toleranceSlotsFrom,
   type ToleranceProps,
 } from "@/registry/ui/recharts-tolerance";
 import {
@@ -197,11 +195,11 @@ export function EvilAreaChart<
     // Recharts identifies its children by type and does not reliably look
     // inside a fragment, which is why every other part returns exactly one.
     // Several of them collapse to the first, as on the ECharts twin.
-    const toleranceEls = parts.filter((child) => isValidElement(child) && child.type === Tolerance);
-    warnExtraTolerances(toleranceEls.length);
-    const toleranceEl = toleranceEls[0];
-    const vp = (isValidElement(toleranceEl) ? toleranceEl.props : {}) as ToleranceProps;
-    const tolerance = isValidElement(toleranceEl) ? toleranceSlotFrom(vp) : NO_TOLERANCE;
+    const tolerance = toleranceSlotsFrom(
+      parts
+        .filter((child) => isValidElement(child) && child.type === Tolerance)
+        .map((child) => (child as ReactElement<ToleranceProps>).props),
+    );
     // The composed series, so the breach overlay knows what to shadow.
     const areaKeys: string[] = [];
     // Each series' own curve, so the breach overlay can follow the path the
@@ -240,7 +238,7 @@ export function EvilAreaChart<
   const displayData = showBrush && !isLoading ? visibleData : data;
 
   const toleranceParts = useToleranceParts({
-    slot: brush.tolerance,
+    slots: brush.tolerance,
     config,
     data: displayData,
     seriesKeys: brush.areaKeys,
@@ -318,7 +316,7 @@ export function EvilAreaChart<
           data={isLoading ? loadingData : displayData}
           {...chartProps}
         >
-          {toleranceParts.band}
+          {toleranceParts.bands}
           {brush.chartChildren}
           {toleranceParts.overlays.map(({ key, type, ...overlay }) => (
             <RechartsArea key={key} {...overlay} type={type ?? curveType} />

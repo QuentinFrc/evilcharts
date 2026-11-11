@@ -98,31 +98,26 @@ one leaving it from above, the other from below — in the same breach color.
 
 <ComponentPreview title="two probes" name="ex-tolerance-series-echarts-line-chart" />
 
-## Composition
+## Several subjects
 
-The part reads the curve it is laid over and lives inside the rest of the chart's behavior.
+A chart can carry more than one norm, as long as they judge different things. `for` names the
+series a norm applies to; without it a norm judges every series, which is what a lone
+`<Tolerance />` does today. Two norms over the same series collapse to the first, with a warning in
+development — a series is read against one norm.
 
-### A step curve
+Once a chart carries more than one, the bands lose their fill. Two translucent regions over one
+axis make a third tint where they meet that belongs to neither, and a reader cannot tell which
+region they are in; the bounds carry the reading on their own, dashed so a lone line does not read
+as a series. Each norm keeps its own `breachKey`, so the runs that left say which norm they left.
 
-The overlay inherits the series' interpolation, so a departure traced over steps stays on the steps
-instead of cutting the corner.
+<ComponentPreview title="two norms" name="ex-tolerance-subjects-echarts-line-chart" />
 
-<ComponentPreview title="step curve" name="ex-tolerance-step-echarts-area-chart" />
-
-### Under a brush
+## Under a brush
 
 The band, its bounds and the departures are part of the plot, so they follow the window the brush
 selects rather than staying pinned to the full extent.
 
 <ComponentPreview title="with a brush" name="ex-tolerance-brush-echarts-area-chart" />
-
-### On a stacked chart
-
-Stacked, a series' value is no longer its plotted height, so the per-series overlay is skipped: a
-departure drawn at the value would point at a place the eye cannot check. The band and its bounds
-still read, against the stack total.
-
-<ComponentPreview title="stacked" name="ex-tolerance-stacked-echarts-area-chart" />
 
 ## API Reference
 
@@ -151,6 +146,11 @@ still read, against the stack total.
   <ApiRow name="label" type="string">
     Text set on the outer bound — the upper one when there is one, the lower one on a floor.
   </ApiRow>
+  <ApiRow name="for" type="string" default="—">
+    The series this norm judges, by `dataKey`. Omitted, it judges every series on the chart. Two
+    norms over the same series collapse to the first, with a warning in development; norms over
+    different series are all drawn, and the bands lose their fill so the bounds can be told apart.
+  </ApiRow>
   <ApiRow name="highlightBreaches" type="boolean" default="true">
     Repaints the series runs outside the band, with a dot on each point that left it. The band and
     its bounds still read without it.
@@ -176,6 +176,9 @@ Where the part does set an axis edge, it rounds that edge outward to a round ste
 magnitude. The edge it computes is an arithmetic result, not a number anyone wrote, and a renderer
 prints it verbatim; rounding costs nothing — the edge only ever moves further out — and gives back
 legible ticks.
+
+On a stacked area chart the overlay is skipped: there a series' own value is not its plotted height,
+so a per-series departure would point at the wrong place. The band and its bounds still read.
 
 The band carries no border. Where it is bounded its own fill edge already delimits it; a border
 would additionally stroke the left and right edges of the plot, which say nothing, and on an open
