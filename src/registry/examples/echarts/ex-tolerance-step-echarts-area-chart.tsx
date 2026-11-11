@@ -47,7 +47,6 @@ export function EChartsExampleToleranceStepAreaChart() {
       data={data}
       config={chartConfig}
       className="h-full w-full p-4"
-      curveType="step"
       xDataKey="slot"
     >
       <EChartsAreaChart.Grid />
@@ -60,7 +59,7 @@ export function EChartsExampleToleranceStepAreaChart() {
         breachKey="short"
         label="floor 6 agents"
       />
-      <EChartsAreaChart.Area dataKey="agents" variant="lines" />
+      <EChartsAreaChart.Area dataKey="agents" variant="lines" curveType="step" />
     </EChartsAreaChart>
   );
 }

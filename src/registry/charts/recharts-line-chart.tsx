@@ -198,9 +198,14 @@ export function EvilLineChart<
     const tolerance = isValidElement(toleranceEl) ? toleranceSlotFrom(vp) : NO_TOLERANCE;
     // The composed series, so the breach overlay knows what to shadow.
     const lineKeys: string[] = [];
+    // Each series' own curve, so the breach overlay can follow the path the
+    // series actually took rather than the chart default.
+    const seriesCurves: Record<string, CurveType> = {};
     for (const child of parts) {
       if (isValidElement(child) && child.type === Line) {
-        lineKeys.push((child.props as LineProps).dataKey);
+        const p = child.props as LineProps;
+        lineKeys.push(p.dataKey);
+        if (p.curveType !== undefined) seriesCurves[p.dataKey] = p.curveType;
       }
     }
     return {
@@ -212,12 +217,9 @@ export function EvilLineChart<
       },
       tolerance,
       lineKeys,
+      seriesCurves,
       chartChildren: parts.filter(
-        (child) =>
-          !(
-            isValidElement(child) &&
-            (child.type === Brush || child.type === Tolerance)
-          ),
+        (child) => !(isValidElement(child) && (child.type === Brush || child.type === Tolerance)),
       ),
     };
   }, [children]);
@@ -230,6 +232,7 @@ export function EvilLineChart<
     config,
     data: displayData,
     seriesKeys: brush.lineKeys,
+    seriesCurves: brush.seriesCurves,
     isLoading,
   });
 
@@ -290,8 +293,8 @@ export function EvilLineChart<
         >
           {toleranceParts.band}
           {brush.chartChildren}
-          {toleranceParts.overlays.map(({ key, ...overlay }) => (
-            <RechartsLine key={key} {...overlay} type={curveType} />
+          {toleranceParts.overlays.map(({ key, type, ...overlay }) => (
+            <RechartsLine key={key} {...overlay} type={type ?? curveType} />
           ))}
           {toleranceParts.lines}
           {isLoading && (

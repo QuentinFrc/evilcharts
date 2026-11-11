@@ -173,16 +173,16 @@ export function toleranceAxisBounds(slot: ToleranceSlot): {
     ...(Number.isFinite(slot.min)
       ? {
           min: (extent: { min: number; max: number }) => {
-            const { low, pad } = toleranceExtent(slot, extent);
-            return low - pad;
+            const { low, high, pad } = toleranceExtent(slot, extent);
+            return toleranceNice(low - pad, high - low + pad * 2, -1);
           },
         }
       : {}),
     ...(Number.isFinite(slot.max)
       ? {
           max: (extent: { min: number; max: number }) => {
-            const { high, pad } = toleranceExtent(slot, extent);
-            return high + pad;
+            const { low, high, pad } = toleranceExtent(slot, extent);
+            return toleranceNice(high + pad, high - low + pad * 2, 1);
           },
         }
       : {}),
@@ -214,6 +214,27 @@ function toleranceExtent(
   const shortfall = twoSided ? (slot.max - slot.min) / TOLERANCE_MAX_SHARE - span : 0;
 
   return { low, high, pad: Math.max(shortfall / 2, headroom) };
+}
+/**
+ * The nearest readable number outward from a computed axis edge.
+ *
+ * A bound the part imposes is printed on the axis verbatim, and `low - pad` is
+ * an arithmetic result, not a number anyone wrote: a floor of 99.5 under data
+ * topping out at 99.99 used to label the axis `99.14760000000001`. Snapping to
+ * a round step of the span's own magnitude keeps every guarantee — the edge
+ * only ever moves further out — while giving the renderer something it can
+ * divide into legible ticks.
+ */
+function toleranceNice(value: number, span: number, direction: -1 | 1): number {
+  if (!Number.isFinite(value) || !(span > 0)) return value;
+  const target = span / 5; // aim for roughly five intervals, as both renderers do
+  const magnitude = Math.pow(10, Math.floor(Math.log10(target)));
+  const step = ([1, 2, 2.5, 5, 10].find((m) => m * magnitude >= target) ?? 10) * magnitude;
+  const snapped = direction < 0 ? Math.floor(value / step) * step : Math.ceil(value / step) * step;
+  // Binary floats make 87.60000000000001 out of 87.6; the step's own precision
+  // is the most the result can legitimately carry.
+  const decimals = Math.max(0, -Math.floor(Math.log10(step)) + 1);
+  return Number(snapped.toFixed(decimals));
 }
 
 /** An infinite bound, as the painter has to spell it. */

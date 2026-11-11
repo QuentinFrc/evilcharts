@@ -172,6 +172,11 @@ band that fills the plot reads as the plot. A one-sided band has no width to tak
 only gets the usual slack past its bound, and a series that roams further keeps its own scale either
 way.
 
+Where the part does set an axis edge, it rounds that edge outward to a round step of the span's own
+magnitude. The edge it computes is an arithmetic result, not a number anyone wrote, and a renderer
+prints it verbatim; rounding costs nothing — the edge only ever moves further out — and gives back
+legible ticks.
+
 The band carries no border. Where it is bounded its own fill edge already delimits it; a border
 would additionally stroke the left and right edges of the plot, which say nothing, and on an open
 side it would trace the frame itself. The bound lines are what make those edges crisp at a tenth of

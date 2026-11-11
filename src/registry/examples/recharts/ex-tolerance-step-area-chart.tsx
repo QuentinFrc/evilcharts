@@ -46,19 +46,13 @@ const chartConfig = {
 
 export function EvilExampleToleranceStepAreaChart() {
   return (
-    <EvilAreaChart
-      data={data}
-      config={chartConfig}
-      className="h-full w-full p-4"
-      curveType="step"
-      xDataKey="slot"
-    >
+    <EvilAreaChart data={data} config={chartConfig} className="h-full w-full p-4" xDataKey="slot">
       <EvilAreaChart.Grid />
       <EvilAreaChart.XAxis dataKey="slot" />
       <EvilAreaChart.YAxis domain={["auto", "auto"]} />
       <EvilAreaChart.Tooltip />
       <EvilAreaChart.Tolerance min={6} dataKey="staffed" breachKey="short" label="floor 6 agents" />
-      <EvilAreaChart.Area dataKey="agents" variant="lines" />
+      <EvilAreaChart.Area dataKey="agents" variant="lines" curveType="step" />
     </EvilAreaChart>
   );
 }

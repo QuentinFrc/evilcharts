@@ -204,9 +204,14 @@ export function EvilAreaChart<
     const tolerance = isValidElement(toleranceEl) ? toleranceSlotFrom(vp) : NO_TOLERANCE;
     // The composed series, so the breach overlay knows what to shadow.
     const areaKeys: string[] = [];
+    // Each series' own curve, so the breach overlay can follow the path the
+    // series actually took rather than the chart default.
+    const seriesCurves: Record<string, CurveType> = {};
     for (const child of parts) {
       if (isValidElement(child) && child.type === Area) {
-        areaKeys.push((child.props as AreaProps).dataKey);
+        const p = child.props as AreaProps;
+        areaKeys.push(p.dataKey);
+        if (p.curveType !== undefined) seriesCurves[p.dataKey] = p.curveType;
       }
     }
     return {
@@ -218,6 +223,7 @@ export function EvilAreaChart<
       },
       tolerance,
       areaKeys,
+      seriesCurves,
       chartChildren: parts.filter(
         (child) =>
           !(
@@ -238,6 +244,7 @@ export function EvilAreaChart<
     config,
     data: displayData,
     seriesKeys: brush.areaKeys,
+    seriesCurves: brush.seriesCurves,
     isLoading,
     // Stacked: a series' own value is not its plotted height there.
     allowBreaches: !isStacked,
@@ -313,8 +320,8 @@ export function EvilAreaChart<
         >
           {toleranceParts.band}
           {brush.chartChildren}
-          {toleranceParts.overlays.map(({ key, ...overlay }) => (
-            <RechartsArea key={key} {...overlay} type={curveType} />
+          {toleranceParts.overlays.map(({ key, type, ...overlay }) => (
+            <RechartsArea key={key} {...overlay} type={type ?? curveType} />
           ))}
           {toleranceParts.lines}
           {isLoading && (

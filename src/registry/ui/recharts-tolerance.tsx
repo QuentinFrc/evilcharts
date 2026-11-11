@@ -1,8 +1,14 @@
 "use client";
 
+import { type ComponentProps, type FC, type Key, type ReactElement, useMemo } from "react";
+import { type Area as RechartsArea, ReferenceArea, ReferenceLine } from "recharts";
 import { getColorsCount, type ChartConfig } from "@/registry/ui/recharts-chart";
-import { type FC, type Key, type ReactElement, useMemo } from "react";
-import { ReferenceArea, ReferenceLine } from "recharts";
+
+/**
+ * The interpolation an overlay has to follow. Taken off Recharts' own prop
+ * rather than copied as a second union, so it cannot drift from it.
+ */
+export type ToleranceCurve = ComponentProps<typeof RechartsArea>["type"];
 
 // The band stays faint on purpose: the BOUNDS are what delimit, and the series
 // has to stay readable through the region. Same numbers as the ECharts twin —
@@ -165,12 +171,35 @@ function toleranceExtent(
   const shortfall = twoSided ? (slot.max - slot.min) / TOLERANCE_MAX_SHARE - span : 0;
   // A flat series, or a lone bound sitting on it, still owes the plot edge slack.
   const headroom = (span || Math.abs(high) || 1) * TOLERANCE_HEADROOM;
-
   return { low, high, pad: Math.max(shortfall / 2, headroom) };
+}
+/**
+ * The nearest readable number outward from a computed axis edge.
+ *
+ * A bound the part imposes is printed on the axis verbatim, and `low - pad` is
+ * an arithmetic result, not a number anyone wrote: a floor of 99.5 under data
+ * topping out at 99.99 used to label the axis `99.14760000000001`. Snapping to
+ * a round step of the span's own magnitude keeps every guarantee — the edge
+ * only ever moves further out — while giving the renderer something it can
+ * divide into legible ticks.
+ */
+function toleranceNice(value: number, span: number, direction: -1 | 1): number {
+  if (!Number.isFinite(value) || !(span > 0)) return value;
+  const target = span / 5; // aim for roughly five intervals, as both renderers do
+  const magnitude = Math.pow(10, Math.floor(Math.log10(target)));
+  const step = ([1, 2, 2.5, 5, 10].find((m) => m * magnitude >= target) ?? 10) * magnitude;
+  const snapped = direction < 0 ? Math.floor(value / step) * step : Math.ceil(value / step) * step;
+  // Binary floats make 87.60000000000001 out of 87.6; the step's own precision
+  // is the most the result can legitimately carry.
+  const decimals = Math.max(0, -Math.floor(Math.log10(step)) + 1);
+  return Number(snapped.toFixed(decimals));
 }
 
 export type ToleranceOverlayProps = {
   key: Key;
+  // The shadowed series' own interpolation. The root falls back to the chart
+  // default when a series did not declare one.
+  type: ToleranceCurve | undefined;
   dataKey: (row: unknown) => number | null;
   stroke: string;
   strokeWidth: number;
@@ -207,6 +236,7 @@ export function useToleranceParts({
   config,
   data,
   seriesKeys,
+  seriesCurves,
   isLoading,
   allowBreaches = true,
 }: {
@@ -214,6 +244,9 @@ export function useToleranceParts({
   config: ChartConfig;
   data: Record<string, unknown>[];
   seriesKeys: string[];
+  // Per-series interpolation, keyed by dataKey. A series missing from it
+  // took the chart default, which the root supplies.
+  seriesCurves?: Record<string, ToleranceCurve>;
   isLoading: boolean;
   allowBreaches?: boolean;
 }): ToleranceParts {
@@ -227,8 +260,9 @@ export function useToleranceParts({
       data.map((row) => Number(row[key])).filter((v) => Number.isFinite(v)),
     );
     const { low, high, pad } = toleranceExtent(slot, plotted);
-    const floor = low - pad;
-    const ceiling = high + pad;
+    const breadth = high - low + pad * 2;
+    const floor = toleranceNice(low - pad, breadth, -1);
+    const ceiling = toleranceNice(high + pad, breadth, 1);
     const reach = Math.max(high - low, Math.abs(high) || 1) * TOLERANCE_OPEN_REACH;
 
     // Unpainted, and the reason an open side works at all: it fixes the axis
@@ -324,6 +358,9 @@ export function useToleranceParts({
       return [
         {
           key: `__out-${key}`,
+          // A departure that cut the corner where its series stepped would
+          // trace a path the series never took.
+          type: seriesCurves?.[key],
           dataKey: (row: unknown) => masked.get(row) ?? null,
           stroke: breachColor,
           strokeWidth: TOLERANCE_BREACH_WIDTH,
@@ -353,5 +390,5 @@ export function useToleranceParts({
     });
 
     return { band, lines, overlays };
-  }, [slot, config, data, seriesKeys, isLoading, allowBreaches]);
+  }, [slot, config, data, seriesKeys, seriesCurves, isLoading, allowBreaches]);
 }
