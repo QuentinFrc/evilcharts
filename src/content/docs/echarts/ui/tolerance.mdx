@@ -70,9 +70,59 @@ which is the reading either way.
 
 <ComponentPreview title="no dataKey" name="ex-tolerance-neutral-echarts-area-chart" />
 
+## Intent
+
+Nothing in the part says that inside the band is the good place to be. `dataKey` colors the region
+you declared acceptable and `breachKey` the runs that left it; what those two keys mean is yours.
+Swap them and the same shape carries the opposite instruction.
+
+A cash position is overdrawn below zero. There the band is the region to climb out of, and the
+runs the overlay picks out are the weeks that managed it — a band marking what you want to leave,
+drawn by exactly the same part as one marking what you want to hold.
+
+### An inverted reading
+
+<ComponentPreview title="max={0}" name="ex-tolerance-inverted-echarts-area-chart" />
+
 ## On a line chart
 
 <ComponentPreview title="line chart" name="ex-tolerance-echarts-line-chart" />
+
+## Several series
+
+The band belongs to the chart, the departures to each series. One norm is laid over the plot once,
+and the overlay is built per series, so two probes in the same corridor each carry their own runs —
+one leaving it from above, the other from below — in the same breach color.
+
+### Two series, one band
+
+<ComponentPreview title="two probes" name="ex-tolerance-series-echarts-line-chart" />
+
+## Composition
+
+The part reads the curve it is laid over and lives inside the rest of the chart's behavior.
+
+### A step curve
+
+The overlay inherits the series' interpolation, so a departure traced over steps stays on the steps
+instead of cutting the corner.
+
+<ComponentPreview title="step curve" name="ex-tolerance-step-echarts-area-chart" />
+
+### Under a brush
+
+The band, its bounds and the departures are part of the plot, so they follow the window the brush
+selects rather than staying pinned to the full extent.
+
+<ComponentPreview title="with a brush" name="ex-tolerance-brush-echarts-area-chart" />
+
+### On a stacked chart
+
+Stacked, a series' value is no longer its plotted height, so the per-series overlay is skipped: a
+departure drawn at the value would point at a place the eye cannot check. The band and its bounds
+still read, against the stack total.
+
+<ComponentPreview title="stacked" name="ex-tolerance-stacked-echarts-area-chart" />
 
 ## API Reference
 
@@ -131,6 +181,3 @@ A departure sits right beside the band it left, so the two colors have to stay a
 green-against-red pairing does not: under deuteranopia it collapses to roughly 6 ΔE, and this repo's
 own dark `--chart-2` and `--destructive` sit at an identical lightness. So a departure also carries
 dots — color is never its only channel.
-
-On a stacked area chart the overlay is skipped: there a series' own value is not its plotted height,
-so a per-series departure would point at the wrong place. The band and its bounds still read.

@@ -70,9 +70,59 @@ which is the reading either way.
 
 <ComponentPreview title="no dataKey" name="ex-tolerance-neutral-area-chart" />
 
+## Intent
+
+Nothing in the part says that inside the band is the good place to be. `dataKey` colors the region
+you declared acceptable and `breachKey` the runs that left it; what those two keys mean is yours.
+Swap them and the same shape carries the opposite instruction.
+
+A cash position is overdrawn below zero. There the band is the region to climb out of, and the
+runs the overlay picks out are the weeks that managed it — a band marking what you want to leave,
+drawn by exactly the same part as one marking what you want to hold.
+
+### An inverted reading
+
+<ComponentPreview title="max={0}" name="ex-tolerance-inverted-area-chart" />
+
 ## On a line chart
 
 <ComponentPreview title="line chart" name="ex-tolerance-line-chart" />
+
+## Several series
+
+The band belongs to the chart, the departures to each series. One norm is laid over the plot once,
+and the overlay is built per series, so two probes in the same corridor each carry their own runs —
+one leaving it from above, the other from below — in the same breach color.
+
+### Two series, one band
+
+<ComponentPreview title="two probes" name="ex-tolerance-series-line-chart" />
+
+## Composition
+
+The part reads the curve it is laid over and lives inside the rest of the chart's behavior.
+
+### A step curve
+
+The overlay inherits the series' interpolation, so a departure traced over steps stays on the steps
+instead of cutting the corner.
+
+<ComponentPreview title="step curve" name="ex-tolerance-step-area-chart" />
+
+### Under a brush
+
+The band, its bounds and the departures are part of the plot, so they follow the window the brush
+selects rather than staying pinned to the full extent.
+
+<ComponentPreview title="with a brush" name="ex-tolerance-brush-area-chart" />
+
+### On a stacked chart
+
+Stacked, a series' value is no longer its plotted height, so the per-series overlay is skipped: a
+departure drawn at the value would point at a place the eye cannot check. The band and its bounds
+still read, against the stack total.
+
+<ComponentPreview title="stacked" name="ex-tolerance-stacked-area-chart" />
 
 ## API Reference
 
@@ -135,6 +185,3 @@ dots — color is never its only channel.
 A Recharts area chart starts its y domain at zero, and the part only ever widens a domain — it
 cannot pull one in. A band far from zero therefore sits in a sliver at the top of the plot until the
 chart is told otherwise: pass `<YAxis domain={["auto", "auto"]} />`, as the floor example does.
-
-On a stacked area chart the overlay is skipped: there a series' own value is not its plotted height,
-so a per-series departure would point at the wrong place. The band and its bounds still read.
